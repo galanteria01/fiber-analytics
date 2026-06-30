@@ -109,14 +109,33 @@ IPv4 is truncated to /24 and IPv6 to /48, and the secret rotates per UTC day —
 
 ### `pnpm` fails with `value.replace is not a function`
 
-This is caused by a malformed global `~/.npmrc` (for example `ca[]=${CERT1}` entries that reference unset environment variables), not by this project. To run pnpm with a clean config without editing your global file, point pnpm at a temporary config:
+This is caused by your global `~/.npmrc`, not by this project. pnpm cannot parse a **registry-scoped** CA entry written with array syntax, e.g.:
+
+```
+//your-registry/:ca[]=${CERT1}
+```
+
+pnpm runs an env-substitution pass that calls `.replace()` on each value; for a scoped `…/:ca[]=` key the value is an array, so it throws. (Global `ca[]=` PEM lines are fine; only the scoped `:ca[]=` form breaks it.)
+
+Permanent fix - remove just those scoped lines (a backup is cheap):
+
+```bash
+cp ~/.npmrc ~/.npmrc.bak
+sed -i '' '/:ca\[\]=/d' ~/.npmrc   # macOS; use `sed -i '/:ca\[\]=/d' ~/.npmrc` on Linux
+```
+
+If you genuinely need a per-registry CA, use a file reference instead of the inline array:
+
+```
+//your-registry/:cafile=/absolute/path/to/ca.pem
+```
+
+Temporary, non-invasive alternative (per-command, bypasses your global config and its auth):
 
 ```bash
 printf 'registry=https://registry.npmjs.org/\n' > /tmp/clean.npmrc
 npm_config_userconfig=/tmp/clean.npmrc pnpm install
 ```
-
-The permanent fix is to repair the offending lines in `~/.npmrc`.
 
 ## License
 
