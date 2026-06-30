@@ -1,48 +1,100 @@
 import { Panel, EmptyState } from '@/components/ui/Panel';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { getRecentEvents } from '@/lib/queries';
+import type { Filters } from '@/lib/filters';
 
-const TYPE_BADGE: Record<string, string> = {
-  click: 'bg-emerald-500/15 text-emerald-300',
-  view: 'bg-blue-500/15 text-blue-300',
-  state_change: 'bg-amber-500/15 text-amber-300',
+const TYPE_BADGE: Record<
+  string,
+  { variant: 'default' | 'secondary' | 'outline' | 'destructive'; className: string }
+> = {
+  click: {
+    variant: 'secondary',
+    className: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300',
+  },
+  view: {
+    variant: 'secondary',
+    className: 'bg-blue-500/15 text-blue-600 dark:text-blue-300',
+  },
+  state_change: {
+    variant: 'secondary',
+    className: 'bg-amber-500/15 text-amber-600 dark:text-amber-300',
+  },
+  page_view: {
+    variant: 'secondary',
+    className: 'bg-violet-500/15 text-violet-600 dark:text-violet-300',
+  },
+  submit: {
+    variant: 'secondary',
+    className: 'bg-pink-500/15 text-pink-600 dark:text-pink-300',
+  },
+  input: {
+    variant: 'secondary',
+    className: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300',
+  },
+  custom: {
+    variant: 'secondary',
+    className: 'bg-orange-500/15 text-orange-600 dark:text-orange-300',
+  },
 };
 
-export async function RecentEventsPanel() {
-  const events = await getRecentEvents();
+export async function RecentEventsPanel({ filters = {} }: { filters?: Filters }) {
+  const events = await getRecentEvents(filters);
 
   return (
-    <Panel title="Recent events" description="Most recent captured interactions.">
+    <Panel
+      title="Recent events"
+      description="Most recent captured interactions."
+    >
       {events.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="text-gray-400">
-              <tr className="border-b border-white/10">
-                <th className="py-2 pr-4 font-medium">Time</th>
-                <th className="py-2 pr-4 font-medium">Type</th>
-                <th className="py-2 pr-4 font-medium">Component</th>
-                <th className="py-2 font-medium">Path</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-200">
-              {events.map((event, index) => (
-                <tr key={`${event.timestamp}-${index}`} className="border-b border-white/5">
-                  <td className="py-2 pr-4 font-mono text-gray-400">{event.timestamp}</td>
-                  <td className="py-2 pr-4">
-                    <span
-                      className={`rounded px-2 py-0.5 ${TYPE_BADGE[event.event_type] ?? 'bg-white/10 text-gray-300'}`}
-                    >
-                      {event.event_type}
-                    </span>
-                  </td>
-                  <td className="py-2 pr-4">{event.component_name}</td>
-                  <td className="py-2 font-mono text-gray-400">{event.url_path}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ScrollArea className="h-[420px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Time</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Component</TableHead>
+                <TableHead>Path</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {events.map((event, index) => {
+                const badge = TYPE_BADGE[event.event_type];
+                return (
+                  <TableRow key={`${event.timestamp}-${index}`}>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {event.timestamp}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={badge?.variant ?? 'outline'}
+                        className={badge?.className}
+                      >
+                        {event.event_type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {event.component_name}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {event.url_path}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       )}
     </Panel>
   );

@@ -1,44 +1,101 @@
 import { transformSync, type PluginObj, type NodePath, types as t } from '@babel/core';
+import path from 'node:path';
 import {
   COMP_ATTR,
   PROPS_ATTR,
+  LOC_ATTR,
+  IGNORE_ATTR,
   INTERACTIVE_TAGS,
   INTERACTIVE_HANDLERS,
+  isSensitiveKey,
   type PrimitiveValue,
 } from '@fiber-analytics/core';
 
 const TS_EXTENSIONS = /\.tsx?$/;
 
+export interface TransformOptions {
+  /** Extra native tags to treat as interactive (merged with defaults). */
+  interactiveTags?: string[];
+  /** Extra handler prop names that mark an element interactive (merged). */
+  interactiveHandlers?: string[];
+  /** Inject `data-fa-loc` (`file:line:col`) for trace-to-source. Default false. */
+  includeSourceLocation?: boolean;
+  /** Project root used to relativize source-location paths. */
+  rootDir?: string;
+  /** Additional prop names to never capture (merged with the core denylist). */
+  propDenylist?: string[];
+}
+
+interface ResolvedOptions {
+  tags: Set<string>;
+  handlers: Set<string>;
+  includeSourceLocation: boolean;
+  rootDir: string;
+  denylist: Set<string>;
+}
+
+function resolveOptions(options: TransformOptions): ResolvedOptions {
+  return {
+    tags: new Set([...INTERACTIVE_TAGS, ...(options.interactiveTags ?? [])]),
+    handlers: new Set([...INTERACTIVE_HANDLERS, ...(options.interactiveHandlers ?? [])]),
+    includeSourceLocation: options.includeSourceLocation ?? false,
+    rootDir: options.rootDir ?? process.cwd(),
+    denylist: new Set((options.propDenylist ?? []).map((k) => k.toLowerCase())),
+  };
+}
+
+function pascalFromFile(filename: string): string {
+  const base = path.basename(filename).replace(/\.[jt]sx?$/, '');
+  if (!base || base === 'index') return 'Anonymous';
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
+
 /**
- * Resolves the name of the nearest enclosing React component for a JSX node.
- * Handles both `function Foo() {}` declarations and `const Foo = () => {}`
- * style components.
+ * Resolves a component name for the nearest enclosing function, handling
+ * `function Foo()`, `const Foo = () => {}`, `memo`/`forwardRef` wrappers, and
+ * `Foo.displayName = ...` assignments. Falls back through outer functions, then
+ * to a PascalCase of the filename for anonymous `export default` components.
  */
-function resolveComponentName(path: NodePath): string | null {
-  let fnPath = path.getFunctionParent();
-  while (fnPath) {
-    const node = fnPath.node;
-    if (t.isFunctionDeclaration(node) && node.id) {
-      return node.id.name;
+function nameFromFunction(fnPath: NodePath): string | null {
+  const fnNode = fnPath.node;
+  if (
+    (t.isFunctionDeclaration(fnNode) || t.isFunctionExpression(fnNode)) &&
+    fnNode.id
+  ) {
+    return fnNode.id.name;
+  }
+
+  let p: NodePath | null = fnPath.parentPath;
+  while (p) {
+    const n = p.node;
+    if (t.isVariableDeclarator(n) && t.isIdentifier(n.id)) return n.id.name;
+    if (t.isFunctionDeclaration(n) && n.id) return n.id.name;
+    if (t.isAssignmentExpression(n) && t.isIdentifier(n.left)) return n.left.name;
+    // Unwrap memo()/forwardRef() and similar HOC call wrappers.
+    if (t.isCallExpression(n) || t.isVariableDeclaration(n)) {
+      p = p.parentPath;
+      continue;
     }
-    const parent = fnPath.parentPath;
-    if (parent && t.isVariableDeclarator(parent.node) && t.isIdentifier(parent.node.id)) {
-      return parent.node.id.name;
-    }
-    fnPath = fnPath.getFunctionParent();
+    if (t.isFunction(n)) break;
+    p = p.parentPath;
   }
   return null;
 }
 
-/**
- * Returns the lowercase tag name for a native element, or null for component
- * elements (which start with an uppercase letter / member expression).
- */
+function resolveComponentName(path: NodePath, filename: string): string {
+  let fnPath = path.getFunctionParent();
+  while (fnPath) {
+    const name = nameFromFunction(fnPath);
+    if (name) return name;
+    fnPath = fnPath.getFunctionParent();
+  }
+  return pascalFromFile(filename);
+}
+
 function nativeTagName(opening: t.JSXOpeningElement): string | null {
   const name = opening.name;
   if (t.isJSXIdentifier(name)) {
     const tag = name.name;
-    // Native DOM tags are lowercase by JSX convention.
     if (tag[0] && tag[0] === tag[0].toLowerCase()) return tag;
   }
   return null;
@@ -48,31 +105,30 @@ function attributeName(attr: t.JSXAttribute): string | null {
   return t.isJSXIdentifier(attr.name) ? attr.name.name : null;
 }
 
-function isInteractive(opening: t.JSXOpeningElement): boolean {
+function hasAttribute(opening: t.JSXOpeningElement, attrName: string): boolean {
+  return opening.attributes.some(
+    (attr) => t.isJSXAttribute(attr) && attributeName(attr) === attrName,
+  );
+}
+
+function isInteractive(opening: t.JSXOpeningElement, opts: ResolvedOptions): boolean {
   const tag = nativeTagName(opening);
-  if (tag && INTERACTIVE_TAGS.has(tag)) return true;
+  if (tag && opts.tags.has(tag)) return true;
 
   for (const attr of opening.attributes) {
     if (!t.isJSXAttribute(attr)) continue;
     const name = attributeName(attr);
-    if (name && INTERACTIVE_HANDLERS.has(name)) return true;
+    if (name && opts.handlers.has(name)) return true;
+    // role="button" / role="link" are interactive ARIA widgets.
+    if (name === 'role' && t.isStringLiteral(attr.value)) {
+      if (attr.value.value === 'button' || attr.value.value === 'link') return true;
+    }
   }
   return false;
 }
 
-function isAlreadyTagged(opening: t.JSXOpeningElement): boolean {
-  return opening.attributes.some(
-    (attr) => t.isJSXAttribute(attr) && attributeName(attr) === COMP_ATTR,
-  );
-}
-
-/**
- * Extracts a primitive value from a static JSX attribute, or returns
- * `undefined` for non-static / non-primitive attributes (which are skipped).
- */
 function staticPrimitive(attr: t.JSXAttribute): PrimitiveValue | undefined {
   const value = attr.value;
-  // Bare attribute, e.g. `disabled` -> true
   if (value === null || value === undefined) return true;
   if (t.isStringLiteral(value)) return value.value;
   if (t.isJSXExpressionContainer(value)) {
@@ -85,45 +141,57 @@ function staticPrimitive(attr: t.JSXAttribute): PrimitiveValue | undefined {
   return undefined;
 }
 
-/**
- * Collects safelisted primitive props from an opening element, skipping event
- * handlers and the analytics attributes themselves.
- */
-function collectProps(opening: t.JSXOpeningElement): Record<string, PrimitiveValue> {
+function collectProps(
+  opening: t.JSXOpeningElement,
+  opts: ResolvedOptions,
+): Record<string, PrimitiveValue> {
   const props: Record<string, PrimitiveValue> = {};
   for (const attr of opening.attributes) {
     if (!t.isJSXAttribute(attr)) continue;
     const name = attributeName(attr);
     if (!name) continue;
-    if (name === COMP_ATTR || name === PROPS_ATTR) continue;
-    if (INTERACTIVE_HANDLERS.has(name) || name.startsWith('on')) continue;
+    if (name === COMP_ATTR || name === PROPS_ATTR || name === LOC_ATTR || name === IGNORE_ATTR) {
+      continue;
+    }
+    if (opts.handlers.has(name) || name.startsWith('on')) continue;
+    if (isSensitiveKey(name) || opts.denylist.has(name.toLowerCase())) continue;
     const value = staticPrimitive(attr);
     if (value !== undefined) props[name] = value;
   }
   return props;
 }
 
-function fiberAnalyticsBabelPlugin(): PluginObj {
+function sourceLocation(
+  opening: t.JSXOpeningElement,
+  filename: string,
+  opts: ResolvedOptions,
+): string | null {
+  const loc = opening.loc;
+  if (!loc) return null;
+  const rel = path.relative(opts.rootDir, filename) || path.basename(filename);
+  return `${rel}:${loc.start.line}:${loc.start.column + 1}`;
+}
+
+function fiberAnalyticsBabelPlugin(filename: string, opts: ResolvedOptions): PluginObj {
   return {
     name: 'fiber-analytics-tagger',
     visitor: {
       JSXOpeningElement(path) {
         const opening = path.node;
-        if (isAlreadyTagged(opening)) return;
-        if (!isInteractive(opening)) return;
+        if (hasAttribute(opening, COMP_ATTR)) return;
+        if (hasAttribute(opening, IGNORE_ATTR)) return;
+        if (!isInteractive(opening, opts)) return;
 
-        const componentName = resolveComponentName(path) ?? 'Anonymous';
-
+        const componentName = resolveComponentName(path, filename);
         opening.attributes.push(
           t.jsxAttribute(t.jsxIdentifier(COMP_ATTR), t.stringLiteral(componentName)),
         );
 
-        const props = collectProps(opening);
+        const props = collectProps(opening, opts);
         if (Object.keys(props).length > 0) {
-          // Emit as an expression container (`={"..."}`) rather than a plain
-          // string attribute: the JSON contains double quotes, which are not
-          // valid in a JSX string attribute when this output is re-parsed by
-          // the React plugin downstream.
+          // Emit as an expression container (`={"..."}`): the JSON contains
+          // double quotes which are invalid in a plain JSX string attribute
+          // when re-parsed by the React plugin downstream.
           opening.attributes.push(
             t.jsxAttribute(
               t.jsxIdentifier(PROPS_ATTR),
@@ -131,15 +199,23 @@ function fiberAnalyticsBabelPlugin(): PluginObj {
             ),
           );
         }
+
+        if (opts.includeSourceLocation) {
+          const loc = sourceLocation(opening, filename, opts);
+          if (loc) {
+            opening.attributes.push(
+              t.jsxAttribute(t.jsxIdentifier(LOC_ATTR), t.stringLiteral(loc)),
+            );
+          }
+        }
       },
     },
   };
 }
 
 /**
- * Minimal raw source map shape, structurally compatible with the type Vite /
- * Rollup expect from a plugin `transform` hook. Babel types its own map as the
- * opaque `object`, so we narrow it here.
+ * Minimal raw source map shape, structurally compatible with what Vite /
+ * Rollup expect from a plugin `transform` hook.
  */
 export interface RawSourceMap {
   version: number;
@@ -157,12 +233,14 @@ export interface TransformResult {
 
 /**
  * Transforms a single source module, injecting `data-fa-*` attributes onto
- * interactive JSX. Returns `null` when the file contains no JSX to transform.
+ * interactive JSX. Returns `null` when there is nothing to transform.
  */
 export function transformSource(
   code: string,
   filename: string,
+  options: TransformOptions = {},
 ): TransformResult | null {
+  const opts = resolveOptions(options);
   const isTs = TS_EXTENSIONS.test(filename);
   const parserPlugins = isTs ? ['jsx' as const, 'typescript' as const] : ['jsx' as const];
 
@@ -172,7 +250,7 @@ export function transformSource(
     configFile: false,
     sourceMaps: true,
     parserOpts: { plugins: parserPlugins },
-    plugins: [fiberAnalyticsBabelPlugin()],
+    plugins: [fiberAnalyticsBabelPlugin(filename, opts)],
   });
 
   if (!result || result.code == null) return null;

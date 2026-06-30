@@ -2,7 +2,9 @@
 
 import dynamic from 'next/dynamic';
 
-const ChartFallback = () => <div className="h-[220px] animate-pulse rounded-lg bg-white/5" />;
+import { Skeleton } from '@/components/ui/skeleton';
+
+const ChartFallback = () => <Skeleton className="h-[240px] w-full" />;
 
 // recharts is heavy and client-only: load it in a separate chunk on the client
 // (bundle-dynamic-imports). `ssr: false` is valid here because this module is a

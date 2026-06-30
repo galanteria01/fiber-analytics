@@ -8,11 +8,11 @@ dist/
 out/
 *.tsbuildinfo
 
-# local analytics object store (generated at runtime)
-data/buffer/*
-data/analytics/**
-!data/buffer/.gitkeep
-!data/analytics/.gitkeep
+# local analytics object store (generated at runtime: raw, processing,
+# analytics, buffer). Ignore all generated files but keep directory placeholders.
+data/**
+!data/**/
+!data/**/.gitkeep
 
 # env / secrets
 .env

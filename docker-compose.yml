@@ -1,0 +1,79 @@
+# Full cloud-like local stack: MinIO (S3) + ingestion/dashboard + sync worker.
+#   docker compose up --build
+# Dashboard:  http://localhost:3000   MinIO console: http://localhost:9001
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${FA_S3_ACCESS_KEY_ID:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${FA_S3_SECRET_ACCESS_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  createbucket:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${FA_S3_ACCESS_KEY_ID:-minioadmin} ${FA_S3_SECRET_ACCESS_KEY:-minioadmin} &&
+      mc mb --ignore-existing local/${FA_S3_BUCKET:-fiber-analytics} &&
+      exit 0;
+      "
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    depends_on:
+      minio:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      FA_STORAGE: s3
+      FA_S3_BUCKET: ${FA_S3_BUCKET:-fiber-analytics}
+      FA_S3_REGION: ${FA_S3_REGION:-us-east-1}
+      FA_S3_ENDPOINT: http://minio:9000
+      FA_S3_ACCESS_KEY_ID: ${FA_S3_ACCESS_KEY_ID:-minioadmin}
+      FA_S3_SECRET_ACCESS_KEY: ${FA_S3_SECRET_ACCESS_KEY:-minioadmin}
+      FA_S3_FORCE_PATH_STYLE: "true"
+      FA_DAILY_SECRET: ${FA_DAILY_SECRET:-change-me}
+      FA_ALLOWED_ORIGINS: ${FA_ALLOWED_ORIGINS:-}
+      FA_ALLOWED_DOMAINS: ${FA_ALLOWED_DOMAINS:-}
+      FA_DASHBOARD_USER: ${FA_DASHBOARD_USER:-admin}
+      FA_DASHBOARD_PASSWORD: ${FA_DASHBOARD_PASSWORD:-}
+      FA_AUTH_SECRET: ${FA_AUTH_SECRET:-change-me-too}
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    depends_on:
+      minio:
+        condition: service_healthy
+      createbucket:
+        condition: service_completed_successfully
+    environment:
+      FA_STORAGE: s3
+      FA_S3_BUCKET: ${FA_S3_BUCKET:-fiber-analytics}
+      FA_S3_REGION: ${FA_S3_REGION:-us-east-1}
+      FA_S3_ENDPOINT: http://minio:9000
+      FA_S3_ACCESS_KEY_ID: ${FA_S3_ACCESS_KEY_ID:-minioadmin}
+      FA_S3_SECRET_ACCESS_KEY: ${FA_S3_SECRET_ACCESS_KEY:-minioadmin}
+      FA_S3_FORCE_PATH_STYLE: "true"
+      FA_RETENTION_DAYS: ${FA_RETENTION_DAYS:-90}
+      FA_WORKER_INTERVAL_MS: ${FA_WORKER_INTERVAL_MS:-4000}
+
+volumes:
+  minio-data:

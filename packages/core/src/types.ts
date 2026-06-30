@@ -14,6 +14,19 @@ export interface FiberAnalyticsConfig {
   maxBatchSize?: number;
   /** Idle-callback timeout (ms) before forcing a flush. Defaults to 2000. */
   flushTimeout?: number;
+  /**
+   * Initial consent state. When false, events are dropped until `setConsent(true)`
+   * is called. Defaults to true.
+   */
+  consent?: boolean;
+  /** Honor the browser Do-Not-Track / Global Privacy Control signals. Defaults to true. */
+  respectDnt?: boolean;
+  /** Session inactivity window in ms before a new session id is minted. Defaults to 30m. */
+  sessionTimeoutMs?: number;
+  /** Automatically emit `page_view` events on SPA navigations. Defaults to true. */
+  trackPageViews?: boolean;
+  /** Max delivery retry attempts for a failed batch. Defaults to 3. */
+  maxRetries?: number;
 }
 
 /**

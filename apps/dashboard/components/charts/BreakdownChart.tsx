@@ -1,32 +1,97 @@
 'use client';
 
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import * as React from 'react';
+import { Label, Pie, PieChart } from 'recharts';
+
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 
 export interface BreakdownDatum {
   event_type: string;
   count: number;
 }
 
-const COLORS: Record<string, string> = {
-  click: '#34d399',
-  view: '#60a5fa',
-  state_change: '#fbbf24',
-};
+const chartConfig = {
+  count: { label: 'Events' },
+  click: { label: 'Click', color: 'hsl(var(--chart-2))' },
+  view: { label: 'View', color: 'hsl(var(--chart-1))' },
+  state_change: { label: 'State change', color: 'hsl(var(--chart-4))' },
+} satisfies ChartConfig;
 
 export default function BreakdownChart({ data }: { data: BreakdownDatum[] }) {
+  const chartData = React.useMemo(
+    () =>
+      data.map((d) => ({
+        ...d,
+        fill: `var(--color-${d.event_type})`,
+      })),
+    [data]
+  );
+
+  const total = React.useMemo(
+    () => data.reduce((acc, d) => acc + d.count, 0),
+    [data]
+  );
+
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ChartContainer
+      config={chartConfig}
+      className="mx-auto aspect-square max-h-[260px]"
+    >
       <PieChart>
-        <Pie data={data} dataKey="count" nameKey="event_type" innerRadius={50} outerRadius={85}>
-          {data.map((entry) => (
-            <Cell key={entry.event_type} fill={COLORS[entry.event_type] ?? '#a78bfa'} />
-          ))}
-        </Pie>
-        <Tooltip
-          contentStyle={{ background: '#0b1020', border: '1px solid rgba(255,255,255,0.1)' }}
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent nameKey="event_type" hideLabel />}
         />
-        <Legend />
+        <Pie
+          data={chartData}
+          dataKey="count"
+          nameKey="event_type"
+          innerRadius={60}
+          strokeWidth={4}
+        >
+          <Label
+            content={({ viewBox }) => {
+              if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                return (
+                  <text
+                    x={viewBox.cx}
+                    y={viewBox.cy}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                  >
+                    <tspan
+                      x={viewBox.cx}
+                      y={viewBox.cy}
+                      className="fill-foreground text-3xl font-bold"
+                    >
+                      {total.toLocaleString()}
+                    </tspan>
+                    <tspan
+                      x={viewBox.cx}
+                      y={(viewBox.cy || 0) + 22}
+                      className="fill-muted-foreground text-xs"
+                    >
+                      Events
+                    </tspan>
+                  </text>
+                );
+              }
+              return null;
+            }}
+          />
+        </Pie>
+        <ChartLegend
+          content={<ChartLegendContent nameKey="event_type" />}
+          className="-translate-y-1 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+        />
       </PieChart>
-    </ResponsiveContainer>
+    </ChartContainer>
   );
 }

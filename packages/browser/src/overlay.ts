@@ -6,6 +6,10 @@ const TYPE_COLORS: Record<EventType, string> = {
   click: '#34d399',
   view: '#60a5fa',
   state_change: '#fbbf24',
+  page_view: '#a78bfa',
+  submit: '#f472b6',
+  input: '#22d3ee',
+  custom: '#f59e0b',
 };
 
 /**

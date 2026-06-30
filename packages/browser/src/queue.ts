@@ -1,8 +1,8 @@
-import type { ClientEvent, IngestPayload } from '@fiber-analytics/core';
+import type { ClientEvent } from '@fiber-analytics/core';
+import type { Transport } from './transport.js';
 
 interface QueueOptions {
-  endpoint: string;
-  domain: string;
+  transport: Transport;
   maxBatchSize: number;
   flushTimeout: number;
 }
@@ -20,11 +20,9 @@ const scheduleIdle: IdleScheduler =
 
 /**
  * In-memory batch queue. Events are buffered and dispatched during browser idle
- * time (`requestIdleCallback`) to keep the main thread free; on page-hide the
- * queue is flushed synchronously via `navigator.sendBeacon`.
- *
- * The queue is intentionally module/instance state rather than React state so
- * that high-frequency pushes never trigger re-renders.
+ * time to keep the main thread free; on page-hide the queue is flushed via
+ * chunked `sendBeacon`. Delivery, retries, and spillover are owned by the
+ * injected {@link Transport}.
  */
 export class BatchQueue {
   private readonly events: ClientEvent[] = [];
@@ -34,11 +32,7 @@ export class BatchQueue {
 
   push(event: ClientEvent): void {
     this.events.push(event);
-    if (this.events.length >= this.options.maxBatchSize) {
-      this.scheduleFlush(0);
-    } else {
-      this.scheduleFlush(this.options.flushTimeout);
-    }
+    this.scheduleFlush(this.events.length >= this.options.maxBatchSize ? 0 : this.options.flushTimeout);
   }
 
   private scheduleFlush(timeout: number): void {
@@ -51,32 +45,17 @@ export class BatchQueue {
   }
 
   /**
-   * Sends all buffered events. When `useBeacon` is true (page is being hidden)
-   * the send is fire-and-forget via `sendBeacon`; otherwise a keepalive
-   * `fetch` is used.
+   * Sends all buffered events. When `useBeacon` is true (page being hidden) the
+   * send is synchronous and chunked; otherwise it uses the retrying transport.
    */
   flush(useBeacon = false): void {
     if (this.events.length === 0) return;
-
-    const payload: IngestPayload = {
-      domain: this.options.domain,
-      events: this.events.splice(0, this.events.length),
-    };
-    const body = JSON.stringify(payload);
-
-    if (useBeacon && typeof navigator.sendBeacon === 'function') {
-      navigator.sendBeacon(this.options.endpoint, new Blob([body], { type: 'application/json' }));
-      return;
+    const batch = this.events.splice(0, this.events.length);
+    if (useBeacon) {
+      this.options.transport.sendBeacon(batch);
+    } else {
+      void this.options.transport.send(batch);
     }
-
-    void fetch(this.options.endpoint, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body,
-      keepalive: true,
-    }).catch(() => {
-      // Telemetry must never throw into the host app; drop on failure.
-    });
   }
 
   get size(): number {

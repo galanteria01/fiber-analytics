@@ -5,7 +5,7 @@ import { fiberAnalytics } from '@fiber-analytics/vite-plugin';
 export default defineConfig({
   // fiberAnalytics is registered before plugin-react (enforce: 'pre') so it can
   // tag JSX before React compiles it away.
-  plugins: [fiberAnalytics(), react()],
+  plugins: [fiberAnalytics({ includeSourceLocation: true }), react()],
   server: {
     port: 5173,
   },

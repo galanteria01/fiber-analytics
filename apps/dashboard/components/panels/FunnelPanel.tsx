@@ -1,34 +1,44 @@
 import { Panel, EmptyState } from '@/components/ui/Panel';
 import { getFunnel } from '@/lib/queries';
+import type { Filters } from '@/lib/filters';
 
 /**
- * A lightweight session funnel rendered as server-side CSS bars (no charting
+ * A lightweight session funnel rendered as server-side bars (no charting
  * dependency needed). Each step shows the number of distinct sessions reaching
  * it, relative to the first step.
  */
-export async function FunnelPanel() {
-  const steps = await getFunnel();
+export async function FunnelPanel({ filters = {} }: { filters?: Filters }) {
+  const steps = await getFunnel(filters);
   const top = steps[0]?.sessions ?? 0;
 
   return (
-    <Panel title="Session funnel" description="Distinct sessions reaching each stage.">
+    <Panel
+      title="Session funnel"
+      description="Distinct sessions reaching each stage."
+    >
       {top === 0 ? (
         <EmptyState />
       ) : (
-        <ol className="flex flex-col gap-3">
-          {steps.map((step) => {
+        <ol className="flex flex-col gap-4">
+          {steps.map((step, index) => {
             const pct = top > 0 ? Math.round((step.sessions / top) * 100) : 0;
             return (
               <li key={step.label}>
-                <div className="mb-1 flex items-center justify-between text-xs text-gray-300">
-                  <span>{step.label}</span>
-                  <span className="text-gray-400">
-                    {step.sessions.toLocaleString()} ({pct}%)
+                <div className="mb-1.5 flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2 font-medium">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground">
+                      {index + 1}
+                    </span>
+                    {step.label}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {step.sessions.toLocaleString()}{' '}
+                    <span className="tabular-nums">({pct}%)</span>
                   </span>
                 </div>
-                <div className="h-3 overflow-hidden rounded-full bg-white/5">
+                <div className="h-3 overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-indigo-500"
+                    className="h-full rounded-full bg-primary transition-all"
                     style={{ width: `${pct}%` }}
                   />
                 </div>

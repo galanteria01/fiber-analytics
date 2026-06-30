@@ -14,7 +14,8 @@
     "dev": "pnpm build:packages && concurrently -n demo,dashboard -c cyan,magenta \"pnpm --filter demo dev\" \"pnpm --filter dashboard dev\"",
     "dev:demo": "pnpm --filter demo dev",
     "dev:dashboard": "pnpm --filter dashboard dev",
-    "sync": "pnpm --filter dashboard sync",
+    "sync": "pnpm --filter worker once",
+    "worker": "pnpm --filter worker start",
     "test": "pnpm -r test",
     "lint": "eslint .",
     "format": "prettier --write ."

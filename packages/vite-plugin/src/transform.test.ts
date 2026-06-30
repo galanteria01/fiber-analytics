@@ -70,4 +70,68 @@ describe('transformSource', () => {
     const occurrences = second.match(/data-fa-comp/g) ?? [];
     expect(occurrences.length).toBe(1);
   });
+
+  it('tags expanded interactive tags (input/select/textarea)', () => {
+    const out = transform(`
+      function Form() {
+        return <input value="x" />;
+      }
+    `);
+    expect(out).toContain('data-fa-comp="Form"');
+  });
+
+  it('tags role="button" elements', () => {
+    const out = transform(`
+      function Menu() {
+        return <div role="button">Open</div>;
+      }
+    `);
+    expect(out).toContain('data-fa-comp="Menu"');
+  });
+
+  it('honors data-fa-ignore opt-out', () => {
+    const out = transform(`
+      function Hidden() {
+        return <button onClick={x} data-fa-ignore>Secret</button>;
+      }
+    `);
+    expect(out).not.toContain('data-fa-comp');
+  });
+
+  it('redacts sensitive prop names', () => {
+    const out = transform(`
+      function Login() {
+        return <input onChange={x} name="username" password="literal" />;
+      }
+    `);
+    const match = out.match(/data-fa-props=\{("(?:[^"\\]|\\.)*")\}/);
+    const decoded = match ? (JSON.parse(JSON.parse(match[1]) as string) as Record<string, unknown>) : {};
+    expect(decoded).not.toHaveProperty('password');
+  });
+
+  it('injects data-fa-loc when source location is enabled', () => {
+    const result = transformSource(
+      `function SaveBar() { return <button onClick={save}>Save</button>; }`,
+      'src/SaveBar.tsx',
+      { includeSourceLocation: true, rootDir: process.cwd() },
+    );
+    expect(result?.code).toContain('data-fa-loc=');
+  });
+
+  it('resolves names through memo/forwardRef wrappers', () => {
+    const out = transform(`
+      const Fancy = memo(function () {
+        return <button onClick={x}>Go</button>;
+      });
+    `);
+    expect(out).toContain('data-fa-comp="Fancy"');
+  });
+
+  it('falls back to a PascalCase filename for anonymous default exports', () => {
+    const out = transform(
+      `export default function () { return <button onClick={x}>Go</button>; }`,
+      'src/Widget.tsx',
+    );
+    expect(out).toContain('data-fa-comp="Widget"');
+  });
 });

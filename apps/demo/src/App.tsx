@@ -1,56 +1,42 @@
-import { useState } from 'react';
-import { Modal } from './components/Modal.js';
-import { SignupForm } from './components/SignupForm.js';
+import { RouterProvider, useRouter } from './router.js';
+import { ToastProvider } from './toast.js';
+import { NavBar } from './components/NavBar.js';
+import { ConsentBanner } from './components/feedback.js';
+import { HomeView } from './views/HomeView.js';
+import { ProductsView } from './views/ProductsView.js';
+import { PricingView } from './views/PricingView.js';
+import { SettingsView } from './views/SettingsView.js';
+
+function CurrentView() {
+  const { path } = useRouter();
+  switch (path) {
+    case '/products':
+      return <ProductsView />;
+    case '/pricing':
+      return <PricingView />;
+    case '/settings':
+      return <SettingsView />;
+    default:
+      return <HomeView />;
+  }
+}
 
 export function App() {
-  const [count, setCount] = useState(0);
-  const [modalOpen, setModalOpen] = useState(false);
-
   return (
-    <main className="app">
-      <header className="hero">
-        <h1>FiberAnalytics Demo</h1>
-        <p>
-          Every interactive element below was auto-tagged at build time. Open the overlay (bottom
-          right) and watch events stream as you interact.
-        </p>
-      </header>
-
-      <section className="panel">
-        <h2>Clicks</h2>
-        <div className="row">
-          <button className="button" label="increment" onClick={() => setCount((c) => c + 1)}>
-            Increment ({count})
-          </button>
-          <button className="button" label="reset" onClick={() => setCount(0)}>
-            Reset
-          </button>
-          <a className="link" href="#docs" label="docs-link">
-            Read the docs
-          </a>
+    <RouterProvider>
+      <ToastProvider>
+        <div className="app">
+          <NavBar />
+          <main className="content">
+            <CurrentView />
+          </main>
+          <footer className="footer">
+            <span>FiberAnalytics demo</span>
+            <span className="muted">Open the overlay (bottom-right) to watch events stream.</span>
+          </footer>
         </div>
-      </section>
-
-      <section className="panel">
-        <h2>Form state changes</h2>
-        <SignupForm />
-      </section>
-
-      <section className="panel">
-        <h2>Visibility state</h2>
-        <button className="button primary" label="open-modal" onClick={() => setModalOpen(true)}>
-          Open modal
-        </button>
-      </section>
-
-      {modalOpen ? (
-        <Modal title="Upgrade your plan" onClose={() => setModalOpen(false)}>
-          <p>Mounting this modal emits a view; closing it emits a state_change.</p>
-          <button className="button primary" label="confirm-upgrade" onClick={() => setModalOpen(false)}>
-            Confirm upgrade
-          </button>
-        </Modal>
-      ) : null}
-    </main>
+        <ConsentBanner />
+      </ToastProvider>
+    </RouterProvider>
   );
 }
