@@ -1,0 +1,31 @@
+{
+  "name": "fiberanalytics",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Component-aware UI analytics framework (local-first scaffold)",
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:packages": "pnpm --filter \"./packages/*\" -r build",
+    "build": "pnpm build:packages && pnpm --filter dashboard build",
+    "dev": "pnpm build:packages && concurrently -n demo,dashboard -c cyan,magenta \"pnpm --filter demo dev\" \"pnpm --filter dashboard dev\"",
+    "dev:demo": "pnpm --filter demo dev",
+    "dev:dashboard": "pnpm --filter dashboard dev",
+    "sync": "pnpm --filter dashboard sync",
+    "test": "pnpm -r test",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.15.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  }
+}
