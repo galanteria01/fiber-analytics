@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'galanteria01'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Enable Corepack
         run: corepack enable
