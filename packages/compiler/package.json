@@ -57,7 +57,7 @@
     "@babel/core": "^7.26.0",
     "@babel/types": "^7.26.0",
     "@fiber-analytics/core": "workspace:*",
-    "unplugin": "^2.3.11"
+    "unplugin": "^3.7.0"
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.5",
