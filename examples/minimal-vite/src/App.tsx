@@ -163,7 +163,7 @@ export function App() {
       </div>
 
       <p style={{ color: '#999', fontSize: '0.8rem', marginTop: '1rem' }}>
-        Data flow: <code>Vite plugin</code> auto-tags this button with <code>data-fa-comp</code> →{' '}
+        Data flow: <code>Compiler</code> auto-tags this button with <code>data-fa-comp</code> →{' '}
         <code>@fiber-analytics/browser</code> captures the click → queues &amp; flushes to{' '}
         <code>POST /api/ingest</code>. Run <code>pnpm sync</code> to compile into Parquet and view
         in the dashboard.

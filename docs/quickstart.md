@@ -11,7 +11,7 @@
 
 ```bash
 pnpm install
-pnpm build:packages   # builds core, storage, vite-plugin, browser SDK
+pnpm build:packages   # builds core, storage, compiler, browser SDK
 ```
 
 All configuration is via environment variables; see [`.env.example`](../.env.example) for the full list. For local development every variable is optional — the defaults give a working local-first setup.
@@ -52,7 +52,7 @@ Open http://localhost:5173 and interact with the page:
 
 ### Expected console output
 
-On localhost with `debug: true` (the demo's default), the SDK renders a small fixed-position **overlay** in the bottom-right corner titled "FiberAnalytics - captured events". Each interaction appends a colored row (green for `click`, pink for `submit`, etc.) with the component name and event type. No manual `track()` call is needed — every interactive element is already tagged at build time by the Vite plugin.
+On localhost with `debug: true` (the demo's default), the SDK renders a small fixed-position **overlay** in the bottom-right corner titled "FiberAnalytics - captured events". Each interaction appends a colored row (green for `click`, pink for `submit`, etc.) with the component name and event type. No manual `track()` call is needed — every interactive element is already tagged at build time by the compiler.
 
 ### Expected network output
 
@@ -99,7 +99,8 @@ The worker polls every `FA_WORKER_INTERVAL_MS` (default 4000 ms), compiles new r
 
 ## Next steps
 
-- [Vite integration](integration-vite.md) — plugin options, `includeSourceLocation`, denylist, `data-fa-ignore`.
+- [Compiler — Vite](integration-vite.md) — adapter options, `includeSourceLocation`, denylist, `data-fa-ignore`.
+- [Compiler — Next.js](integration-nextjs.md) — Next.js variant.
 - [Browser SDK](integration-react.md) — `init` signature, consent, manual `track`/`page`, teardown.
 - [Privacy](privacy.md) — session model, IP truncation, DNT/GPC, redaction, retention.
 - [Deployment](deployment.md) — Vercel + worker host, MinIO local stack.

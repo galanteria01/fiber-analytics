@@ -4,7 +4,7 @@ A bare-bones Vite + React app that demonstrates FiberAnalytics auto-tagging end-
 
 ## What it shows
 
-- `vite.config.ts` registers the `@fiber-analytics/vite-plugin` with `includeSourceLocation: true` so the compiler injects `data-fa-comp` / `data-fa-props` / `data-fa-loc` onto interactive JSX at build time.
+- `vite.config.ts` registers `@fiber-analytics/compiler/vite` with `includeSourceLocation: true` so the compiler injects `data-fa-comp` / `data-fa-props` / `data-fa-loc` onto interactive JSX at build time.
 - `src/main.tsx` calls `init()` from `@fiber-analytics/browser` (with `debug: true` so a floating overlay appears on `localhost`).
 - `src/App.tsx` renders one button and one form — no manual `track()` calls. The delegated click/submit interceptors do the rest.
 

@@ -1,21 +1,21 @@
-# Vite integration
+# Compiler — Vite adapter
 
 > Automatic JSX tagging at build time — no manual `track()` calls per component.
 
 ## What it does
 
-`@fiber-analytics/vite-plugin` is a Babel AST transform registered with `enforce: 'pre'` so it runs before `@vitejs/plugin-react` compiles JSX away. For every interactive JSX element it injects:
+`@fiber-analytics/compiler` is a Babel AST transform. The Vite adapter (`@fiber-analytics/compiler/vite`) registers it with `enforce: 'pre'` so it runs before `@vitejs/plugin-react` compiles JSX away. For every interactive JSX element it injects:
 
 - `data-fa-comp="<ComponentName>"` — component identity resolved from the nearest enclosing function (`function Foo`, `const Foo = () => {}`, `memo`/`forwardRef` wrappers, `Foo.displayName`), falling back to a PascalCase of the filename.
 - `data-fa-props='{"key":"value"}'` — safelisted primitive props present on the element at build time, with sensitive keys redacted (see below).
 - `data-fa-loc="src/Button.tsx:12:4"` — build-time source location, only when enabled (see `includeSourceLocation`).
 
-Elements that already carry `data-fa-comp` are left untouched (idempotent transform). Elements marked with `data-fa-ignore` are skipped entirely.
+Elements that already carry `data-fa-comp` are left untouched (idempotent transform). Elements marked with `data-fa-ignore` are skipped entirely. The same transform is available for other toolchains — see [Compiler — other bundlers](#other-bundlers).
 
 ## Installation
 
 ```bash
-pnpm add -D @fiber-analytics/vite-plugin
+pnpm add -D @fiber-analytics/compiler
 ```
 
 ## Minimal `vite.config.ts`
@@ -23,7 +23,7 @@ pnpm add -D @fiber-analytics/vite-plugin
 ```ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { fiberAnalytics } from '@fiber-analytics/vite-plugin';
+import { fiberAnalytics } from '@fiber-analytics/compiler/vite';
 
 export default defineConfig({
   plugins: [
@@ -39,7 +39,7 @@ Order matters: `fiberAnalytics()` must appear **before** `react()` (or any other
 
 ## Plugin options
 
-All options are defined in `packages/vite-plugin/src/transform.ts:TransformOptions` and re-exported from `packages/vite-plugin/src/index.ts`.
+All options are defined in `packages/compiler/src/transform.ts:TransformOptions` and re-exported from `packages/compiler/src/vite.ts`.
 
 | Option                  | Type                      | Default                                                     | Description                                                                                                                                                                 |
 | ----------------------- | ------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -87,6 +87,43 @@ At build time the transform inspects each interactive element's JSX attributes a
 4. A static primitive (`"hello"`, `{42}`, `{true}`, `null`). Dynamic identifiers, function calls, and object literals are ignored.
 
 The collected props are serialized as JSON and emitted as `data-fa-props={"..."} ` (an expression container to avoid quote escaping issues with the downstream React plugin).
+
+## Other bundlers
+
+The compiler ships as an `unplugin` — one package, multiple adapters:
+
+| Bundler / framework | Import | Notes |
+| --- | --- | --- |
+| Vite | `@fiber-analytics/compiler/vite` | `enforce: 'pre'` before `@vitejs/plugin-react`. |
+| webpack / Next.js (webpack) | `@fiber-analytics/compiler/webpack` | Works with `next.config.js` `webpack` hook; see `docs/integration-nextjs.md`. |
+| Rollup / Rolldown | `@fiber-analytics/compiler` (`rollup` export | Uses the same `transform` hook. |
+| esbuild | `@fiber-analytics/compiler` (`esbuild` export |
+| Astro | `@fiber-analytics/compiler` (`astro` export | Wraps the Vite integration. |
+| Babel only | `@fiber-analytics/compiler/babel` | Standalone Babel plugin; see docs below. |
+
+### Next.js (Babel)
+
+Next.js uses SWC by default. To use the compiler via Babel, add a `babel.config.js` (which opts the app into Babel for that build):
+
+```js
+// babel.config.js
+module.exports = {
+  presets: ['next/babel'],
+  plugins: [['@fiber-analytics/compiler/babel', { includeSourceLocation: false }]],
+};
+```
+
+Trade-off: custom Babel disables some SWC optimizations. Prefer this only when you need FiberAnalytics tagging inside a Next.js app that renders interactive JSX.
+
+### Bare Babel / `.babelrc`
+
+```json
+{
+  "plugins": [["@fiber-analytics/compiler/babel", { "includeSourceLocation": true }]]
+}
+```
+
+Options are the same `TransformOptions` as the Vite adapter.
 
 ## Related docs
 

@@ -12,7 +12,7 @@ git clone https://github.com/galanteria01/fiber-analytics.git
 cd fiber-analytics
 pnpm install
 
-# Build shared packages (core, storage, vite-plugin, browser)
+# Build shared packages (core, storage, compiler, browser)
 pnpm build:packages
 
 # Run demo + dashboard together (demo on :5173, dashboard on :3000)
@@ -44,7 +44,7 @@ docker compose up --build
 ```
 packages/core          Shared event schema, validation, safelist
 packages/storage       ObjectStore abstraction (local + S3)
-packages/vite-plugin   Build-time JSX auto-tagging
+packages/compiler      Build-time JSX auto-tagging (Vite/Next.js/Rollup/esbuild/Babel adapters)
 packages/browser       Browser SDK (sessions, queue, transport)
 apps/demo              Demo app exercising clicks/forms/routing
 apps/dashboard         Next.js ingest + dashboard
@@ -60,7 +60,7 @@ Read `docs/architecture.md` for module boundaries and data flow.
 ```bash
 pnpm -r test                        # all workspaces
 pnpm --filter @fiber-analytics/browser test
-pnpm --filter @fiber-analytics/vite-plugin test
+pnpm --filter @fiber-analytics/compiler test
 pnpm --filter @fiber-analytics/storage test
 pnpm --filter dashboard test
 pnpm --filter worker test

@@ -2,7 +2,7 @@
 
 ## Elevator pitch
 
-FiberAnalytics is a component-aware analytics framework for React + Vite apps. A build-time plugin auto-tags every interactive JSX element with its component name, props, and source location; a tiny browser SDK captures those semantics in privacy-respecting session journeys; and the data lands as Parquet that DuckDB queries in-process — no cookies, no always-on database, no vendor lock-in.
+FiberAnalytics is a component-aware analytics framework for React apps (Vite, Next.js, or any Babel/webpack/Rollup toolchain). A build-time compiler auto-tags every interactive JSX element with its component name, props, and source location; a tiny browser SDK captures those semantics in privacy-respecting session journeys; and the data lands as Parquet that DuckDB queries in-process — no cookies, no always-on database, no vendor lock-in.
 
 ## Problem statements
 
@@ -30,7 +30,7 @@ A Postgres or MySQL instance provisioned just to hold clickstreams sits idle mos
 
 | Proposition                                    | What it means in practice                                                                                                                                                                                                                                                                                                                                                              |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Zero manual instrumentation**                | The Vite plugin walks JSX at build time and injects `data-fa-comp`, `data-fa-props`, and `data-fa-loc` onto interactive elements. No per-component `track()` calls for the common case; custom events via `track()`/`page()` remain available when you need them.                                                                                                                      |
+| **Zero manual instrumentation**                | The compiler walks JSX at build time and injects `data-fa-comp`, `data-fa-props`, and `data-fa-loc` onto interactive elements. No per-component `track()` calls for the common case; custom events via `track()`/`page()` remain available when you need them.                                                                                                                      |
 | **Component-level semantics, not URL proxies** | Every event carries the originating component name, safelisted primitive props, and `file:line:col`. Dashboards can answer "which component?" and "which prop value?" without asking engineers to re-tag after the fact.                                                                                                                                                               |
 | **Privacy by default**                         | Sessions are keyed on an ephemeral `sessionStorage` id with a 30-minute sliding window — no cookies, no fingerprint. IPs are truncated (/24 for IPv4, /48 for IPv6), the `session_hash` rotates with a daily secret, DNT/GPC and an explicit consent gate are honoured, sensitive keys are redacted at build and at ingest, and the worker prunes partitions past `FA_RETENTION_DAYS`. |
 | **Hardened ingestion**                         | Origin and domain allowlists, body-size and per-batch event caps, per-IP rate limiting, bot user-agent filtering, content-type validation, and timestamp clamping are all built in. The same config surface governs behaviour across dev and production.                                                                                                                               |
@@ -39,9 +39,9 @@ A Postgres or MySQL instance provisioned just to hold clickstreams sits idle mos
 
 ## Target personas
 
-### React + Vite teams
+### React teams (Vite, Next.js, any bundler)
 
-You ship interactive UIs in Vite and want analytics that matches how you actually build: per component, per prop, per file — without maintaining a parallel tracking layer. You already use (or are willing to adopt) a Vite plugin; FiberAnalytics fits that workflow with `enforce: "pre"` before `@vitejs/plugin-react`.
+You ship interactive UIs in React and want analytics that matches how you actually build: per component, per prop, per file — without maintaining a parallel tracking layer. FiberAnalytics meets you where you build — Vite via `@fiber-analytics/compiler/vite`, Next.js via `@fiber-analytics/compiler/babel` or the webpack adapter — and instruments at the compiler boundary before JSX is emitted.
 
 ### Small product teams
 
@@ -58,8 +58,7 @@ You want to run the whole pipeline — ingest edge, Parquet compaction worker, a
 ## Differentiators
 
 ### Auto-tagging at the compiler boundary
-
-Most tools instrument at runtime. FiberAnalytics instruments at compile time via a Babel transform over the Vite graph. That means component identity and prop snapshots are captured before JSX is even emitted, with denylist filtering and `data-fa-ignore` opt-out handled once at build rather than in every component.
+Most tools instrument at runtime. FiberAnalytics instruments at compile time via a Babel transform. That means component identity and prop snapshots are captured before JSX is even emitted, with denylist filtering and `data-fa-ignore` opt-out handled once at build rather than in every component.
 
 ### Cookieless sessions with explicit consent
 
@@ -79,8 +78,8 @@ All claims are as of 2026-11-22 and refer to the vendors' documented self-serve 
 
 | Dimension                | FiberAnalytics                                                               | Segment                                                       | PostHog                                                           | Mixpanel                                                  | Plausible                                            | Umami                                             |
 | ------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------- |
-| Primary use case         | Component-level UI analytics for React/Vite teams                            | Customer-data pipeline (collect → route to 300+ destinations) | Product analytics + feature flags + A/B + error tracking          | Product analytics + funnels + cohorts + experiments       | Lightweight web traffic analytics                    | Lightweight web traffic analytics (self-hostable) |
-| Integration effort       | Vite plugin (build) + `init()` (SDK); zero per-component wiring              | SDK per event + destination config                            | SDK + autocapture + manual events                                 | SDK + manual events                                       | Script tag                                           | Script tag                                        |
+| Primary use case         | Component-level UI analytics for React teams (Vite, Next.js, any bundler)     | Customer-data pipeline (collect → route to 300+ destinations) | Product analytics + feature flags + A/B + error tracking          | Product analytics + funnels + cohorts + experiments       | Lightweight web traffic analytics                    | Lightweight web traffic analytics (self-hostable) |
+| Integration effort       | Compiler (Vite/Next.js/Babel adapter) + `init()` (SDK); zero per-component wiring | SDK per event + destination config                            | SDK + autocapture + manual events                                 | SDK + manual events                                       | Script tag                                           | Script tag                                        |
 | Component / prop context | Automatic (`data-fa-comp`, safelisted props, source location)                | Manual properties per `track()`                               | Manual; autocapture has element text/class but not component name | Manual                                                    | Page-level only                                      | Page-level only                                   |
 | Session model            | Cookieless session journeys (`sessionStorage` + sliding window)              | Cookie + userId                                               | Cookie (session-journey style available)                          | Cookie + distinct_id                                      | Cookieless (optional)                                | Cookieless (optional)                             |
 | Session-journey detail   | Per-session timeline with component, props, and source loc                   | No session-journey UI (raw events forwarded elsewhere)        | Session timeline / journeys product                               | Session timeline via flows                                | No session-journey view                              | No session-journey view                           |
@@ -90,7 +89,7 @@ All claims are as of 2026-11-22 and refer to the vendors' documented self-serve 
 | Privacy posture          | No cookies, IP truncation, daily secret rotation, DNT/GPC, retention pruning | Depends on destinations; cookies typically used               | Configurable; cookieless mode available                           | Cookie-based; consent APIs available                      | Privacy-friendly by design                           | Privacy-friendly by design                        |
 | Hosting                  | Self-hosted only (you deploy dashboard + worker)                             | Hosted service                                                | Hosted or self-hosted                                             | Hosted                                                    | Hosted or self-hosted                                | Hosted or self-hosted                             |
 | Cost at small scale      | Infra cost only (object storage + compute)                                   | Free tier then per-MTU                                        | Generous free tier then per-event                                 | Free tier then per-event                                  | Per-site pricing                                     | Free (self-host) or per-site (cloud)              |
-| Best when…               | You build in React/Vite and want component analytics you control             | You need to fan events to many downstream tools               | You want an all-in-one product stack                              | You want mature funnel/cohort/experiment tooling at scale | You want simple page analytics without product depth | You want simple page analytics self-hosted        |
+| Best when…               | You build in React and want component analytics you control                | You need to fan events to many downstream tools               | You want an all-in-one product stack                              | You want mature funnel/cohort/experiment tooling at scale | You want simple page analytics without product depth | You want simple page analytics self-hosted        |
 
 ### Reading the table honestly
 

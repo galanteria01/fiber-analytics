@@ -1,7 +1,7 @@
 {
-  "name": "@fiber-analytics/vite-plugin",
+  "name": "@fiber-analytics/compiler",
   "version": "0.1.0",
-  "description": "Vite/Babel compiler plugin that auto-tags interactive JSX for FiberAnalytics.",
+  "description": "Babel transform that auto-tags interactive JSX for FiberAnalytics — works with any bundler.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,25 +11,36 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.js"
+    },
+    "./webpack": {
+      "types": "./dist/webpack.d.ts",
+      "import": "./dist/webpack.js"
+    },
+    "./babel": {
+      "types": "./dist/babel.d.ts",
+      "import": "./dist/babel.js"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "repository": {
     "type": "git",
     "url": "https://github.com/galanteria01/fiber-analytics.git",
-    "directory": "packages/vite-plugin"
+    "directory": "packages/compiler"
   },
   "bugs": {
     "url": "https://github.com/galanteria01/fiber-analytics/issues"
   },
-  "homepage": "https://github.com/galanteria01/fiber-analytics/tree/main/packages/vite-plugin#readme",
+  "homepage": "https://github.com/galanteria01/fiber-analytics/tree/main/packages/compiler#readme",
   "author": "Shoury Sharma <shoury.sharma@nutanix.com>",
   "keywords": [
     "analytics",
     "react",
-    "vite",
+    "babel",
+    "compiler",
     "privacy",
     "component-analytics"
   ],
@@ -45,7 +56,8 @@
   "dependencies": {
     "@babel/core": "^7.26.0",
     "@babel/types": "^7.26.0",
-    "@fiber-analytics/core": "workspace:*"
+    "@fiber-analytics/core": "workspace:*",
+    "unplugin": "^2.3.11"
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.5",
@@ -57,5 +69,10 @@
   },
   "peerDependencies": {
     "vite": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
   }
 }

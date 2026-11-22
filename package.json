@@ -45,7 +45,8 @@
   "keywords": [
     "analytics",
     "react",
-    "vite",
+    "compiler",
+    "babel",
     "privacy",
     "duckdb",
     "parquet",

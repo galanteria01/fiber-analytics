@@ -6,7 +6,7 @@
 
 ```mermaid
 flowchart TD
-  Build["Vite plugin (build): data-fa-comp / props / loc"] --> App["Instrumented app"]
+  Build["Compiler (build): data-fa-comp / props / loc"] --> App["Instrumented app"]
   App --> SDK["Browser SDK: sessions, pageviews, queue, retry, consent"]
   SDK -->|"POST JSON (idle / beacon, chunked)"| Ingest["/api/ingest (validate, allowlist, rate-limit, enrich, clamp)"]
   Ingest -->|"PutObject NDJSON"| Raw["ObjectStore raw/ (S3 or local)"]
@@ -18,7 +18,7 @@ flowchart TD
 
 ### What each arrow means
 
-1. **Build -> App** — The Vite plugin runs with `enforce: 'pre'` before `@vitejs/plugin-react` compiles JSX away. It injects `data-fa-comp`, `data-fa-props`, and (optionally) `data-fa-loc` onto every interactive element. See [Vite integration](integration-vite.md).
+1. **Build -> App** — The compiler (Babel transform, exposed via Vite/webpack/Rollup/esbuild/Babel adapters) injects `data-fa-comp`, `data-fa-props`, and (optionally) `data-fa-loc` onto every interactive element. For Vite it runs with `enforce: 'pre'` before `@vitejs/plugin-react` compiles JSX away. See [Compiler — Vite](integration-vite.md) and [Compiler — Next.js](integration-nextjs.md).
 2. **App -> SDK** — The browser SDK attaches a single set of delegated listeners (`click`, `submit`, `change`, debounced `input`, `keydown` for `role="button"`). It reads the `data-fa-*` attributes via `element.closest('[data-fa-comp]')`, enriches the event with session/pageview ordering and page context, and buffers it.
 3. **SDK -> Ingest** — Delivery is via `requestIdleCallback`-scheduled `fetch` during idle time, or chunked `navigator.sendBeacon` on page hide. Payloads are JSON `{ domain, events }` chunked to stay under the ~60 KB beacon ceiling; failed batches spill to `localStorage` and are retried on next init.
 4. **Ingest -> Raw** — `apps/dashboard/app/api/ingest/route.ts` validates the payload, checks origin/domain allowlists, applies bot filtering and per-IP rate limiting, clamps timestamps, derives `session_hash`, and writes one NDJSON object per request under `raw/`. The edge is serverless-safe (writes to the object store, never local disk).
@@ -31,7 +31,7 @@ flowchart TD
 
 | Module          | Package / path                  | Responsibility                                                                                                            |
 | --------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Compiler plugin | `packages/vite-plugin`          | Babel AST transform that auto-tags interactive JSX with `data-fa-comp` / `data-fa-props` / `data-fa-loc`.                 |
+| Compiler        | `packages/compiler`             | Babel AST transform that auto-tags interactive JSX with `data-fa-comp` / `data-fa-props` / `data-fa-loc` (Vite, webpack/Next.js, Rollup, esbuild, Babel adapters). |
 | Client SDK      | `packages/browser`              | Delegated tracker: sessions, SPA pageviews, consent gating, idle-queue + retrying transport, localhost overlay.           |
 | Shared core     | `packages/core`                 | Versioned event schema (`AnalyticsEvent`), validation, `safelistProps` / `isSensitiveKey`, shared constants and types.    |
 | Object storage  | `packages/storage`              | `ObjectStore` abstraction with `LocalObjectStore` and `S3ObjectStore` adapters, plus `duckdbSetup()` SQL.                 |
@@ -42,7 +42,7 @@ flowchart TD
 
 ### Ownership notes
 
-- `packages/vite-plugin` and `packages/browser` share no runtime dependency — they communicate only through the `data-fa-*` HTML attributes emitted at build and read at capture time.
+- `packages/compiler` and `packages/browser` share no runtime dependency — they communicate only through the `data-fa-*` HTML attributes emitted at build and read at capture time.
 - `packages/core` has no dependency on any other workspace package. Every other package may depend on `core`.
 - `packages/storage` exposes `createObjectStoreFromEnv(env, defaultRoot)` which selects the local or S3 adapter based on `FA_STORAGE`. Both `apps/dashboard` and `apps/worker` call it, but the worker owns all Parquet writes.
 - The dashboard never writes Parquet; it only reads it. The worker never serves HTTP (unless `FA_WORKER_HEALTH_PORT` is set).
@@ -74,7 +74,8 @@ Hive keys (`domain`, `year`, `month`, `day`) are extracted by DuckDB automatical
 ## Related docs
 
 - [Quickstart](quickstart.md) — run the stack locally end-to-end.
-- [Vite integration](integration-vite.md) — plugin options and ignore attribute.
+- [Compiler — Vite](integration-vite.md) — Vite adapter, plugin options and ignore attribute.
+- [Compiler — Next.js](integration-nextjs.md) — Next.js adapter.
 - [Browser SDK](integration-react.md) — init, consent, manual track/page, teardown.
 - [Privacy](privacy.md) — session model, IP truncation, DNT/GPC, redaction, retention.
 - [Deployment](deployment.md) — Vercel + worker hosts, MinIO local stack.

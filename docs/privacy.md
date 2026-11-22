@@ -73,9 +73,9 @@ If either signal is present, `ConsentManager` forces `granted = false` regardles
 
 Redaction happens at two layers so a missed check in one does not leak through the other.
 
-### Build-time (Vite plugin)
+### Build-time (compiler)
 
-`packages/vite-plugin/src/transform.ts:collectProps` drops any static prop whose name:
+`packages/compiler/src/transform.ts:collectProps` drops any static prop whose name:
 
 - Matches `SENSITIVE_PROP_PATTERNS` via `isSensitiveKey` (case-insensitive substring) — patterns include `password`, `passwd`, `secret`, `token`, `apikey`/`api_key`, `auth`, `ssn`, `creditcard`/`credit_card`, `cardnumber`/`card_number`, `cvv`, `email`, `phone` (see `packages/core/src/constants.ts`).
 - Matches the user-supplied `propDenylist` option (also case-insensitive).

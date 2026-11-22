@@ -23,7 +23,7 @@ init({
 
 ### Minimal JSX example
 
-Any interactive element tagged by the Vite plugin is captured automatically — no extra code per component:
+Any interactive element tagged by the compiler is captured automatically — no extra code per component:
 
 ```tsx
 // src/main.tsx — one-time setup
@@ -156,6 +156,7 @@ Removes all delegated listeners, clears the overlay if any, disconnects the navi
 ## Related docs
 
 - [Architecture](architecture.md) — where the SDK sits in the data flow.
-- [Vite integration](integration-vite.md) — how `data-fa-*` attributes are injected at build.
+- [Compiler — Vite](integration-vite.md) — how `data-fa-*` attributes are injected at build.
+- [Compiler — Next.js](integration-nextjs.md) — Next.js variant.
 - [Privacy](privacy.md) — session model, IP truncation, DNT/GPC, redaction, retention.
 - [Deployment](deployment.md) — configuring `endpoint` per environment.

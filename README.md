@@ -8,7 +8,7 @@
 
 > **Solution:** FiberAnalytics auto-tags interactive JSX at build time, captures semantic component context with a tiny non-blocking browser SDK, and stores it as columnar Parquet queried in-process by DuckDB — no always-on database, no cookies, no PII.
 
-> **You should use this if:** you build React apps with Vite, want component-level analytics without manual `track()` calls, and prefer a privacy-first, local-first stack you can run on your own infrastructure.
+> **You should use this if:** you build React apps (Vite, Next.js, or any Babel/webpack/Rollup/esbuild toolchain), want component-level analytics without manual `track()` calls, and prefer a privacy-first, local-first stack you can run on your own infrastructure.
 
 ## Why FiberAnalytics
 
@@ -26,7 +26,7 @@
 
 ```mermaid
 flowchart TD
-  Build["Vite plugin (build): data-fa-comp / props / loc"] --> App["Instrumented app"]
+  Build["Compiler (build): data-fa-comp / props / loc"] --> App["Instrumented app"]
   App --> SDK["Browser SDK: sessions, pageviews, queue, retry, consent"]
   SDK -->|"POST JSON (idle / beacon, chunked)"| Ingest["/api/ingest (validate, allowlist, rate-limit, enrich, clamp)"]
   Ingest -->|"PutObject NDJSON"| Raw["ObjectStore raw/ (S3 or local)"]
@@ -38,7 +38,7 @@ flowchart TD
 
 | Module           | Package                        | Role                                                                                                      |
 | ---------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| Compiler plugin  | `@fiber-analytics/vite-plugin` | Babel AST transform that auto-tags interactive JSX with `data-fa-comp` / `data-fa-props` / `data-fa-loc`. |
+| Compiler         | `@fiber-analytics/compiler`    | Babel AST transform that auto-tags interactive JSX with `data-fa-comp` / `data-fa-props` / `data-fa-loc` (adapters: Vite, webpack/Next.js, Rollup, esbuild, Astro, Babel). |
 | Client SDK       | `@fiber-analytics/browser`     | Delegated event tracker with sessions, SPA pageviews, consent, and a retrying/chunked transport.          |
 | Shared core      | `@fiber-analytics/core`        | Versioned event schema, validation, prop safelist + denylist, shared types.                               |
 | Object storage   | `@fiber-analytics/storage`     | `ObjectStore` abstraction with local-filesystem and S3/MinIO adapters.                                    |
@@ -57,7 +57,7 @@ See [docs/architecture.md](docs/architecture.md) for module boundaries, data flo
 
 ```bash
 pnpm install
-pnpm build:packages        # build core, storage, vite-plugin, browser SDK
+pnpm build:packages        # build core, storage, compiler, browser SDK
 pnpm dev                   # runs demo (5173) + dashboard (3000) together
 ```
 
@@ -70,10 +70,7 @@ Then:
    pnpm sync
    ```
 
-3. Open the dashboard at http://localhost:3000 for the overview (top components, event-type breakdown, funnel), the **Sessions** list, a per-session **journey timeline** (`/sessions/[id]`), and **path analysis** (`/paths`). Use the filter bar to slice by date range, domain, event type, component, or URL.
-
-Full walkthrough: [docs/quickstart.md](docs/quickstart.md) • Integration: [Vite plugin](docs/integration-vite.md) • [Browser SDK](docs/integration-react.md) • [Privacy](docs/privacy.md) • [Deployment](docs/deployment.md) • [Production checklist](docs/production-checklist.md) • [Why FiberAnalytics](docs/positioning.md)
-
+Full walkthrough: [docs/quickstart.md](docs/quickstart.md) • Integration: [Compiler (Vite)](docs/integration-vite.md) • [Compiler (Next.js)](docs/integration-nextjs.md) • [Browser SDK](docs/integration-react.md) • [Privacy](docs/privacy.md) • [Deployment](docs/deployment.md) • [Production checklist](docs/production-checklist.md) • [Why FiberAnalytics](docs/positioning.md)
 ### Environment
 
 All configuration is via environment variables; see [`.env.example`](.env.example) for the full list with defaults. Everything is optional for local dev. The most common knobs:
@@ -114,7 +111,7 @@ The codebase follows the `vercel-react-best-practices` rules where they apply:
 
 - **Browser SDK** — init-once listeners, a single delegated `click`/`change` listener, passive listeners, idle-time flushing, `Set`/`Map` lookups and early exits, and a transient queue held in module state rather than React state.
 - **Dashboard** — async Server Components, parallel DuckDB queries via `Promise.all`, per-request dedup with `React.cache()`, a module-hoisted DuckDB connection, `<Suspense>` streaming per panel, and `recharts` lazy-loaded via `next/dynamic`.
-- **Vite plugin** — hoisted matchers, early exits on non-interactive nodes, and idempotent transforms.
+- **Compiler** — hoisted matchers, early exits on non-interactive nodes, and idempotent transforms.
 - **Architecture** — one responsibility per file, a single `src/index.ts` entry per package, shared types only in `@fiber-analytics/core`, and strict TypeScript across the workspace.
 
 ## Data schema (v2)
@@ -160,7 +157,7 @@ Details: [docs/privacy.md](docs/privacy.md)
 
 | Command                     | Description                                                              |
 | --------------------------- | ------------------------------------------------------------------------ |
-| `pnpm build:packages`       | Build the shared packages (`core`, `storage`, `vite-plugin`, `browser`). |
+| `pnpm build:packages`       | Build the shared packages (`core`, `storage`, `compiler`, `browser`).    |
 | `pnpm dev`                  | Run demo + dashboard concurrently.                                       |
 | `pnpm sync`                 | Run the worker once: compile raw NDJSON into Parquet partitions.         |
 | `pnpm worker`               | Run the worker as a long-lived service (poll + compact + prune).         |
@@ -172,7 +169,8 @@ Details: [docs/privacy.md](docs/privacy.md)
 
 - [Architecture](docs/architecture.md) — module boundaries, data flow, ownership
 - [Quickstart](docs/quickstart.md) — install → first event → sync → dashboard
-- [Vite plugin](docs/integration-vite.md) — plugin options, denylist, ignore attribute
+- [Compiler — Vite](docs/integration-vite.md) — Vite adapter, plugin options, denylist, ignore attribute
+- [Compiler — Next.js](docs/integration-nextjs.md) — Next.js adapter (Babel vs webpack hook)
 - [Browser SDK](docs/integration-react.md) — init, consent, manual track/page, teardown
 - [Privacy](docs/privacy.md) — session id, IP truncation, DNT/GPC, redaction, retention
 - [Deployment](docs/deployment.md) — Vercel + worker, MinIO, env checklist

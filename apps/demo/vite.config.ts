@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { fiberAnalytics } from '@fiber-analytics/vite-plugin';
+import { fiberAnalytics } from '@fiber-analytics/compiler/vite';
 
 export default defineConfig({
   // fiberAnalytics is registered before plugin-react (enforce: 'pre') so it can
