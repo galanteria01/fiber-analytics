@@ -25,12 +25,7 @@ export default function ComponentsChart({ data }: { data: ComponentDatum[] }) {
       className="aspect-auto w-full"
       style={{ height: Math.max(200, data.length * 44) }}
     >
-      <BarChart
-        accessibilityLayer
-        data={data}
-        layout="vertical"
-        margin={{ left: 8, right: 32 }}
-      >
+      <BarChart accessibilityLayer data={data} layout="vertical" margin={{ left: 8, right: 32 }}>
         <CartesianGrid horizontal={false} />
         <XAxis type="number" dataKey="events" hide />
         <YAxis
@@ -41,10 +36,7 @@ export default function ComponentsChart({ data }: { data: ComponentDatum[] }) {
           width={120}
           tickMargin={8}
         />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent hideLabel />}
-        />
+        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
         <Bar dataKey="events" fill="var(--color-events)" radius={[0, 4, 4, 0]}>
           <LabelList
             dataKey="events"

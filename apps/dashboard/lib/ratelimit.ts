@@ -17,6 +17,7 @@ export function rateLimit(key: string, limitPerMinute: number): boolean {
 
   if (!bucket || now >= bucket.resetAt) {
     buckets.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    if (buckets.size > 10_000) pruneRateLimiter(now);
     return true;
   }
   if (bucket.count >= limitPerMinute) return false;

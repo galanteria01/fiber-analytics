@@ -6,3 +6,11 @@ data
 *.log
 **/.env
 **/.env.local
+.pnpm-store/
+.cursor/
+examples/
+apps/demo/
+.changeset/
+docs/
+*.md
+.github/

@@ -50,10 +50,7 @@ export async function RecentEventsPanel({ filters = {} }: { filters?: Filters })
   const events = await getRecentEvents(filters);
 
   return (
-    <Panel
-      title="Recent events"
-      description="Most recent captured interactions."
-    >
+    <Panel title="Recent events" description="Most recent captured interactions.">
       {events.length === 0 ? (
         <EmptyState />
       ) : (
@@ -76,16 +73,11 @@ export async function RecentEventsPanel({ filters = {} }: { filters?: Filters })
                       {event.timestamp}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={badge?.variant ?? 'outline'}
-                        className={badge?.className}
-                      >
+                      <Badge variant={badge?.variant ?? 'outline'} className={badge?.className}>
                         {event.event_type}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium">
-                      {event.component_name}
-                    </TableCell>
+                    <TableCell className="font-medium">{event.component_name}</TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       {event.url_path}
                     </TableCell>

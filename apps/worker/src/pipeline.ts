@@ -3,7 +3,7 @@ import { RAW_PREFIX, PROCESSING_PREFIX, ANALYTICS_PREFIX } from '@fiber-analytic
 import { store, config, log } from './config.js';
 import { createConnection, RAW_COLUMNS, SELECT_COLUMNS } from './duck.js';
 
-const DEDUP = "QUALIFY row_number() OVER (PARTITION BY event_id ORDER BY timestamp DESC) = 1";
+const DEDUP = 'QUALIFY row_number() OVER (PARTITION BY event_id ORDER BY timestamp DESC) = 1';
 
 function uriList(keys: string[]): string {
   return `[${keys.map((k) => `'${store.uri(k)}'`).join(', ')}]`;

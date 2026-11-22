@@ -19,9 +19,7 @@ export function RefreshButton() {
       disabled={isPending}
     >
       <RefreshCw className={cn('h-4 w-4', isPending && 'animate-spin')} />
-      <span className="hidden sm:inline">
-        {isPending ? 'Refreshing' : 'Refresh'}
-      </span>
+      <span className="hidden sm:inline">{isPending ? 'Refreshing' : 'Refresh'}</span>
     </Button>
   );
 }

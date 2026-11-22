@@ -31,41 +31,24 @@ export default function BreakdownChart({ data }: { data: BreakdownDatum[] }) {
         ...d,
         fill: `var(--color-${d.event_type})`,
       })),
-    [data]
+    [data],
   );
 
-  const total = React.useMemo(
-    () => data.reduce((acc, d) => acc + d.count, 0),
-    [data]
-  );
+  const total = React.useMemo(() => data.reduce((acc, d) => acc + d.count, 0), [data]);
 
   return (
-    <ChartContainer
-      config={chartConfig}
-      className="mx-auto aspect-square max-h-[260px]"
-    >
+    <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[260px]">
       <PieChart>
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent nameKey="event_type" hideLabel />}
         />
-        <Pie
-          data={chartData}
-          dataKey="count"
-          nameKey="event_type"
-          innerRadius={60}
-          strokeWidth={4}
-        >
+        <Pie data={chartData} dataKey="count" nameKey="event_type" innerRadius={60} strokeWidth={4}>
           <Label
             content={({ viewBox }) => {
               if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
                 return (
-                  <text
-                    x={viewBox.cx}
-                    y={viewBox.cy}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                  >
+                  <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                     <tspan
                       x={viewBox.cx}
                       y={viewBox.cy}

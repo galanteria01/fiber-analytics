@@ -28,14 +28,7 @@ export const TAGGED_SELECTOR = `[${COMP_ATTR}]`;
 /**
  * Default native HTML tags considered interactive for auto-tagging.
  */
-export const INTERACTIVE_TAGS = new Set([
-  'button',
-  'a',
-  'input',
-  'select',
-  'textarea',
-  'summary',
-]);
+export const INTERACTIVE_TAGS = new Set(['button', 'a', 'input', 'select', 'textarea', 'summary']);
 
 /**
  * Default event handler prop names that mark a JSX element as interactive.

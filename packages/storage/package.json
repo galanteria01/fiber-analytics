@@ -13,7 +13,29 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/galanteria01/fiber-analytics.git",
+    "directory": "packages/storage"
+  },
+  "bugs": {
+    "url": "https://github.com/galanteria01/fiber-analytics/issues"
+  },
+  "homepage": "https://github.com/galanteria01/fiber-analytics/tree/main/packages/storage#readme",
+  "author": "Shoury Sharma <shoury.sharma@nutanix.com>",
+  "keywords": [
+    "analytics",
+    "storage",
+    "s3",
+    "parquet",
+    "duckdb"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

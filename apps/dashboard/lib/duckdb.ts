@@ -11,12 +11,14 @@ async function getConnection(): Promise<DuckDBConnection> {
     connectionPromise = (async () => {
       const instance = await DuckDBInstance.create(':memory:');
       const connection = await instance.connect();
-      // Configure httpfs / S3 secrets when using the S3 adapter.
       for (const stmt of getStore().duckdbSetup()) {
         await connection.run(stmt);
       }
       return connection;
     })();
+    connectionPromise.catch(() => {
+      connectionPromise = null;
+    });
   }
   return connectionPromise;
 }
@@ -94,8 +96,6 @@ const CANONICAL_COLUMNS: ReadonlyArray<readonly [string, string]> = [
   ['utm_source', 'VARCHAR'],
   ['utm_medium', 'VARCHAR'],
   ['utm_campaign', 'VARCHAR'],
-  ['utm_term', 'VARCHAR'],
-  ['utm_content', 'VARCHAR'],
   ['source_loc', 'VARCHAR'],
   ['domain', 'VARCHAR'],
   ['year', 'VARCHAR'],

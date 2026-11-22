@@ -89,19 +89,23 @@ export class S3ObjectStore implements ObjectStore {
 
   async delete(keys: string[]): Promise<void> {
     if (keys.length === 0) return;
-    await this.client.send(
-      new DeleteObjectsCommand({
-        Bucket: this.bucket,
-        Delete: { Objects: keys.map((key) => ({ Key: this.fullKey(key) })) },
-      }),
-    );
+    // DeleteObjects supports at most 1000 keys per request.
+    for (let i = 0; i < keys.length; i += 1000) {
+      const batch = keys.slice(i, i + 1000);
+      await this.client.send(
+        new DeleteObjectsCommand({
+          Bucket: this.bucket,
+          Delete: { Objects: batch.map((key) => ({ Key: this.fullKey(key) })) },
+        }),
+      );
+    }
   }
 
   async move(fromKey: string, toKey: string): Promise<void> {
     await this.client.send(
       new CopyObjectCommand({
         Bucket: this.bucket,
-        CopySource: `${this.bucket}/${this.fullKey(fromKey)}`,
+        CopySource: encodeURI(`${this.bucket}/${this.fullKey(fromKey)}`),
         Key: this.fullKey(toKey),
       }),
     );
@@ -125,7 +129,7 @@ export class S3ObjectStore implements ObjectStore {
   duckdbSetup(): string[] {
     const o = this.options;
     const parts = [
-      "TYPE S3",
+      'TYPE S3',
       o.accessKeyId ? `KEY_ID '${sqlEscape(o.accessKeyId)}'` : '',
       o.secretAccessKey ? `SECRET '${sqlEscape(o.secretAccessKey)}'` : '',
       `REGION '${sqlEscape(o.region ?? 'us-east-1')}'`,

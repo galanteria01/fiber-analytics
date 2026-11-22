@@ -1,9 +1,4 @@
-import {
-  SCHEMA_VERSION,
-  type ClientEvent,
-  type DeviceClass,
-  type EventType,
-} from './schema.js';
+import { SCHEMA_VERSION, type ClientEvent, type DeviceClass, type EventType } from './schema.js';
 import type { IngestPayload } from './types.js';
 import { safelistProps } from './safelist.js';
 import { clampTimestamp } from './time.js';
@@ -49,7 +44,9 @@ function optDevice(value: unknown): DeviceClass | undefined {
 
 function randomId(): string {
   // crypto.randomUUID is available in modern browsers and Node >= 16.
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
 }
 
 function sanitizeEvent(raw: unknown, now: Date): ClientEvent | null {
@@ -92,9 +89,13 @@ function sanitizeEvent(raw: unknown, now: Date): ClientEvent | null {
 /**
  * Validates and normalizes an untrusted ingest payload. Returns `null` when the
  * payload is structurally invalid; otherwise returns a payload containing only
- * well-formed, safelisted, clamped events (capped at {@link MAX_EVENTS_PER_BATCH}).
+ * well-formed, safelisted, clamped events (capped at `maxEvents`).
  */
-export function validateIngestPayload(raw: unknown, now: Date = new Date()): IngestPayload | null {
+export function validateIngestPayload(
+  raw: unknown,
+  now: Date = new Date(),
+  maxEvents: number = MAX_EVENTS_PER_BATCH,
+): IngestPayload | null {
   if (!raw || typeof raw !== 'object') return null;
   const body = raw as Record<string, unknown>;
 
@@ -103,7 +104,7 @@ export function validateIngestPayload(raw: unknown, now: Date = new Date()): Ing
 
   const events: ClientEvent[] = [];
   for (const candidate of body.events) {
-    if (events.length >= MAX_EVENTS_PER_BATCH) break;
+    if (events.length >= maxEvents) break;
     const event = sanitizeEvent(candidate, now);
     if (event) events.push(event);
   }

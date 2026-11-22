@@ -32,7 +32,9 @@ export class BatchQueue {
 
   push(event: ClientEvent): void {
     this.events.push(event);
-    this.scheduleFlush(this.events.length >= this.options.maxBatchSize ? 0 : this.options.flushTimeout);
+    this.scheduleFlush(
+      this.events.length >= this.options.maxBatchSize ? 0 : this.options.flushTimeout,
+    );
   }
 
   private scheduleFlush(timeout: number): void {

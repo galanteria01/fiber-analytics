@@ -73,7 +73,10 @@ export default async function SessionsPage({
                         {s.session_id.slice(0, 12)}…
                       </span>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground" title={formatDateTime(s.last_seen)}>
+                    <TableCell
+                      className="text-xs text-muted-foreground"
+                      title={formatDateTime(s.last_seen)}
+                    >
                       {relativeTime(s.last_seen)}
                     </TableCell>
                     <TableCell className="text-xs">{duration(s)}</TableCell>

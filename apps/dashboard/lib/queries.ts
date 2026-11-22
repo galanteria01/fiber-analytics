@@ -267,8 +267,12 @@ export const getFilterOptions = cache(async (): Promise<FilterOptions> => {
   if (!(await hasData())) return { domains: [], eventTypes: [], components: [] };
   const src = await eventsSource();
   const [domains, eventTypes, components] = await Promise.all([
-    query<{ v: string }>(`SELECT DISTINCT domain AS v FROM ${src} WHERE domain IS NOT NULL ORDER BY v`),
-    query<{ v: string }>(`SELECT DISTINCT event_type AS v FROM ${src} WHERE event_type IS NOT NULL ORDER BY v`),
+    query<{ v: string }>(
+      `SELECT DISTINCT domain AS v FROM ${src} WHERE domain IS NOT NULL ORDER BY v`,
+    ),
+    query<{ v: string }>(
+      `SELECT DISTINCT event_type AS v FROM ${src} WHERE event_type IS NOT NULL ORDER BY v`,
+    ),
     query<{ v: string }>(
       `SELECT component_name AS v FROM ${src} WHERE component_name <> ''
        GROUP BY component_name ORDER BY count(*) DESC LIMIT 50`,

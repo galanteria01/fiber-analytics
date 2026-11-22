@@ -12,10 +12,7 @@ export async function FunnelPanel({ filters = {} }: { filters?: Filters }) {
   const top = steps[0]?.sessions ?? 0;
 
   return (
-    <Panel
-      title="Session funnel"
-      description="Distinct sessions reaching each stage."
-    >
+    <Panel title="Session funnel" description="Distinct sessions reaching each stage.">
       {top === 0 ? (
         <EmptyState />
       ) : (
@@ -32,8 +29,7 @@ export async function FunnelPanel({ filters = {} }: { filters?: Filters }) {
                     {step.label}
                   </span>
                   <span className="text-muted-foreground">
-                    {step.sessions.toLocaleString()}{' '}
-                    <span className="tabular-nums">({pct}%)</span>
+                    {step.sessions.toLocaleString()} <span className="tabular-nums">({pct}%)</span>
                   </span>
                 </div>
                 <div className="h-3 overflow-hidden rounded-full bg-muted">

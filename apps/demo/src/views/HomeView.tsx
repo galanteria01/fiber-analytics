@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from '../router.js';
 import { Modal } from '../components/Modal.js';
-import {
-  CounterControls,
-  LikeButton,
-  RatingStars,
-  SearchBar,
-} from '../components/controls.js';
+import { CounterControls, LikeButton, RatingStars, SearchBar } from '../components/controls.js';
 import { Accordion } from '../components/feedback.js';
 
 export function HomeView() {
@@ -22,11 +17,7 @@ export function HomeView() {
           stream into the FiberAnalytics dashboard.
         </p>
         <div className="row">
-          <button
-            className="button primary"
-            label="cta-shop"
-            onClick={() => navigate('/products')}
-          >
+          <button className="button primary" label="cta-shop" onClick={() => navigate('/products')}>
             Browse products
           </button>
           <button className="button" label="cta-modal" onClick={() => setModalOpen(true)}>

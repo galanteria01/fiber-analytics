@@ -13,8 +13,30 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/galanteria01/fiber-analytics.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/galanteria01/fiber-analytics/issues"
+  },
+  "homepage": "https://github.com/galanteria01/fiber-analytics/tree/main/packages/core#readme",
+  "author": "Shoury Sharma <shoury.sharma@nutanix.com>",
+  "keywords": [
+    "analytics",
+    "react",
+    "privacy",
+    "component-analytics",
+    "cookieless"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

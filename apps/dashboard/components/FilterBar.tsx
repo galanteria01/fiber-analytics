@@ -2,8 +2,7 @@ import { Button } from '@/components/ui/button';
 import type { Filters } from '@/lib/filters';
 import type { FilterOptions } from '@/lib/queries';
 
-const inputClass =
-  'h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground';
+const inputClass = 'h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground';
 
 function Select({
   name,
@@ -50,14 +49,34 @@ export function FilterBar({
     >
       <label className="flex flex-col gap-1 text-xs text-muted-foreground">
         From
-        <input type="date" name="from" defaultValue={filters.from?.slice(0, 10)} className={inputClass} />
+        <input
+          type="date"
+          name="from"
+          defaultValue={filters.from?.slice(0, 10)}
+          className={inputClass}
+        />
       </label>
       <label className="flex flex-col gap-1 text-xs text-muted-foreground">
         To
-        <input type="date" name="to" defaultValue={filters.to?.slice(0, 10)} className={inputClass} />
+        <input
+          type="date"
+          name="to"
+          defaultValue={filters.to?.slice(0, 10)}
+          className={inputClass}
+        />
       </label>
-      <Select name="domain" value={filters.domain} placeholder="All domains" options={options.domains} />
-      <Select name="type" value={filters.eventType} placeholder="All types" options={options.eventTypes} />
+      <Select
+        name="domain"
+        value={filters.domain}
+        placeholder="All domains"
+        options={options.domains}
+      />
+      <Select
+        name="type"
+        value={filters.eventType}
+        placeholder="All types"
+        options={options.eventTypes}
+      />
       <Select
         name="component"
         value={filters.component}

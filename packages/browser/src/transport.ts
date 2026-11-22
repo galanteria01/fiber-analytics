@@ -24,7 +24,10 @@ function chunk(domain: string, events: ClientEvent[]): IngestPayload[] {
   let current: ClientEvent[] = [];
   for (const event of events) {
     current.push(event);
-    if (encode({ domain, events: current }).length >= BEACON_LIMIT_BYTES && current.length > 1) {
+    if (
+      new TextEncoder().encode(encode({ domain, events: current })).length >= BEACON_LIMIT_BYTES &&
+      current.length > 1
+    ) {
       current.pop();
       payloads.push({ domain, events: current });
       current = [event];

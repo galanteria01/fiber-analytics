@@ -2,7 +2,7 @@
   "name": "fiberanalytics",
   "version": "0.1.0",
   "private": true,
-  "description": "Component-aware UI analytics framework (local-first scaffold)",
+  "description": "Component-aware UI analytics framework — auto-tagging, cookieless sessions, Parquet + DuckDB.",
   "license": "MIT",
   "packageManager": "pnpm@10.33.0",
   "engines": {
@@ -18,7 +18,10 @@
     "worker": "pnpm --filter worker start",
     "test": "pnpm -r test",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "changeset:version": "changeset version",
+    "release": "pnpm build:packages && changeset publish"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
@@ -27,6 +30,27 @@
     "concurrently": "^9.1.0",
     "eslint": "^9.15.0",
     "prettier": "^3.3.3",
-    "typescript": "^5.6.3"
-  }
+    "typescript": "^5.6.3",
+    "@changesets/cli": "^2.29.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/galanteria01/fiber-analytics.git"
+  },
+  "bugs": {
+    "url": "https://github.com/galanteria01/fiber-analytics/issues"
+  },
+  "homepage": "https://github.com/galanteria01/fiber-analytics#readme",
+  "author": "Shoury Sharma <shoury.sharma@nutanix.com>",
+  "keywords": [
+    "analytics",
+    "react",
+    "vite",
+    "privacy",
+    "duckdb",
+    "parquet",
+    "session-journey",
+    "component-analytics",
+    "cookieless"
+  ]
 }

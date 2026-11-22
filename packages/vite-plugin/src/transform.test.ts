@@ -105,7 +105,9 @@ describe('transformSource', () => {
       }
     `);
     const match = out.match(/data-fa-props=\{("(?:[^"\\]|\\.)*")\}/);
-    const decoded = match ? (JSON.parse(JSON.parse(match[1]) as string) as Record<string, unknown>) : {};
+    const decoded = match?.[1]
+      ? (JSON.parse(JSON.parse(match[1]) as string) as Record<string, unknown>)
+      : {};
     expect(decoded).not.toHaveProperty('password');
   });
 

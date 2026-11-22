@@ -1,9 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { AUTH_COOKIE, checkCredentials, createToken } from '@/lib/auth';
+import { AUTH_COOKIE, assertProductionSecrets, checkCredentials, createToken } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest): Promise<Response> {
+  try {
+    assertProductionSecrets();
+  } catch {
+    return NextResponse.json({ error: 'service misconfigured' }, { status: 500 });
+  }
   let body: { user?: string; pass?: string };
   try {
     body = (await request.json()) as { user?: string; pass?: string };
@@ -19,7 +24,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const response = NextResponse.json({ ok: true });
   response.cookies.set(AUTH_COOKIE, token, {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: 7 * 24 * 60 * 60,

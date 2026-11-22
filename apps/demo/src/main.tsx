@@ -4,8 +4,7 @@ import { init } from '@fiber-analytics/browser';
 import { App } from './App.js';
 import './styles.css';
 
-const INGEST_ENDPOINT =
-  import.meta.env.VITE_FA_ENDPOINT ?? 'http://localhost:3000/api/ingest';
+const INGEST_ENDPOINT = import.meta.env.VITE_FA_ENDPOINT ?? 'http://localhost:3000/api/ingest';
 
 init({
   endpoint: INGEST_ENDPOINT,

@@ -42,6 +42,7 @@ export function trackState(enricher: Enricher, emit: Emit): () => void {
   observer.observe(document.body, {
     childList: true,
     subtree: true,
+    attributes: true,
     attributeFilter: [COMP_ATTR],
   });
 

@@ -8,13 +8,7 @@ export const SCHEMA_VERSION = 2;
  * The category of a captured interaction.
  */
 export type EventType =
-  | 'click'
-  | 'view'
-  | 'state_change'
-  | 'page_view'
-  | 'submit'
-  | 'input'
-  | 'custom';
+  'click' | 'view' | 'state_change' | 'page_view' | 'submit' | 'input' | 'custom';
 
 /**
  * Coarse device classification derived from the viewport / user agent hints.

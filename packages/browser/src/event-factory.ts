@@ -24,7 +24,9 @@ export interface Enricher {
 }
 
 function randomId(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
 }
 
 function base(enricher: Enricher, eventType: EventType): ClientEvent {

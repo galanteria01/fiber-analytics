@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
     steps:
       - uses: actions/checkout@v4
 
@@ -16,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
 
       - name: Install dependencies
@@ -28,13 +31,35 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Format check
+        run: pnpm format:check
+
       - name: Typecheck (apps)
         run: |
           pnpm --filter dashboard typecheck
           pnpm --filter worker typecheck
 
+      - name: Typecheck (packages)
+        run: pnpm --filter "./packages/*" exec tsc --noEmit
+
       - name: Test
         run: pnpm -r test
 
+      - name: Build demo
+        run: pnpm --filter demo build
+
       - name: Build dashboard
         run: pnpm --filter dashboard build
+
+      - name: Validate package publish contents
+        run: pnpm --filter "./packages/*" exec npm pack --dry-run
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-node-${{ matrix.node-version }}
+          path: |
+            coverage/
+            **/coverage/
+          if-no-files-found: ignore

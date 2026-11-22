@@ -13,10 +13,20 @@ export function truncateIp(ip: string): string {
     return `${parts[0] ?? '0'}.${parts[1] ?? '0'}.${parts[2] ?? '0'}.0`;
   }
   if (ip.includes(':')) {
-    const groups = ip.split(':');
+    // Expand :: shorthand before truncating to avoid miscounting groups.
+    const expanded = ip.includes('::') ? expandIPv6(ip) : ip;
+    const groups = expanded.split(':');
     return `${groups.slice(0, 3).join(':')}::`;
   }
   return ip;
+}
+
+function expandIPv6(ip: string): string {
+  const [left, right] = ip.split('::');
+  const leftGroups = left ? left.split(':').filter(Boolean) : [];
+  const rightGroups = right ? right.split(':').filter(Boolean) : [];
+  const missing = 8 - leftGroups.length - rightGroups.length;
+  return [...leftGroups, ...Array<string>(missing).fill('0'), ...rightGroups].join(':');
 }
 
 /**

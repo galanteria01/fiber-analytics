@@ -13,7 +13,29 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/galanteria01/fiber-analytics.git",
+    "directory": "packages/vite-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/galanteria01/fiber-analytics/issues"
+  },
+  "homepage": "https://github.com/galanteria01/fiber-analytics/tree/main/packages/vite-plugin#readme",
+  "author": "Shoury Sharma <shoury.sharma@nutanix.com>",
+  "keywords": [
+    "analytics",
+    "react",
+    "vite",
+    "privacy",
+    "component-analytics"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",

@@ -9,11 +9,7 @@ export const revalidate = 0;
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-export default async function PathsPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
+export default async function PathsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const filters = parseFilters(await searchParams);
   const [paths, options] = await Promise.all([getPaths(filters), getFilterOptions()]);
   const max = paths[0]?.sessions ?? 0;
@@ -42,7 +38,10 @@ export default async function PathsPage({
                       </span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </li>
                 );

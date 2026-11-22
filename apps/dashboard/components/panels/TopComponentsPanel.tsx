@@ -7,7 +7,10 @@ import type { Filters } from '@/lib/filters';
 export async function TopComponentsPanel({ filters = {} }: { filters?: Filters }) {
   const data = await getTopComponents(filters);
   return (
-    <Panel title="Top components" description="Most-interacted components. Select one to drill down.">
+    <Panel
+      title="Top components"
+      description="Most-interacted components. Select one to drill down."
+    >
       {data.length === 0 ? (
         <EmptyState />
       ) : (

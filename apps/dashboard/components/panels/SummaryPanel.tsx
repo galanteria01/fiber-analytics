@@ -4,15 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { getSummary } from '@/lib/queries';
 import type { Filters } from '@/lib/filters';
 
-function Stat({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: number;
-  icon: LucideIcon;
-}) {
+function Stat({ label, value, icon: Icon }: { label: string; value: number; icon: LucideIcon }) {
   return (
     <Card>
       <CardContent className="flex items-center justify-between gap-4 p-6">
@@ -20,9 +12,7 @@ function Stat({
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {label}
           </p>
-          <p className="text-3xl font-semibold tracking-tight">
-            {value.toLocaleString()}
-          </p>
+          <p className="text-3xl font-semibold tracking-tight">{value.toLocaleString()}</p>
         </div>
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />

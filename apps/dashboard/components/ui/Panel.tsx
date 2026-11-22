@@ -1,12 +1,6 @@
 import type { ReactNode } from 'react';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PanelProps {
@@ -17,13 +11,7 @@ interface PanelProps {
   children: ReactNode;
 }
 
-export function Panel({
-  title,
-  description,
-  action,
-  className,
-  children,
-}: PanelProps) {
+export function Panel({ title, description, action, className, children }: PanelProps) {
   return (
     <Card className={className}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
@@ -54,10 +42,7 @@ export function EmptyState() {
       <p className="font-medium text-foreground">No data yet</p>
       <p>
         Interact with the demo app, then run{' '}
-        <code className="rounded bg-muted px-1 py-0.5 text-foreground">
-          pnpm sync
-        </code>
-        .
+        <code className="rounded bg-muted px-1 py-0.5 text-foreground">pnpm sync</code>.
       </p>
     </div>
   );

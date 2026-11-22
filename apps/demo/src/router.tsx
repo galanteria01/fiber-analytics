@@ -29,11 +29,7 @@ export function RouterProvider({ children }: { children: ReactNode }) {
     setPath(to);
   };
 
-  return (
-    <RouterContext.Provider value={{ path, navigate }}>
-      {children}
-    </RouterContext.Provider>
-  );
+  return <RouterContext.Provider value={{ path, navigate }}>{children}</RouterContext.Provider>;
 }
 
 export function useRouter(): RouterValue {

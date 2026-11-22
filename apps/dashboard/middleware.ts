@@ -1,11 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { AUTH_COOKIE, authDisabled, verifyToken } from '@/lib/auth';
+import { AUTH_COOKIE, assertProductionSecrets, authDisabled, verifyToken } from '@/lib/auth';
 
 /**
  * Gates all dashboard pages behind the session cookie. The ingestion endpoint,
  * auth routes, the login page, and static assets are excluded via the matcher.
  */
 export async function middleware(request: NextRequest): Promise<NextResponse> {
+  try {
+    assertProductionSecrets();
+  } catch (error) {
+    return NextResponse.json({ error: String(error) }, { status: 500 });
+  }
   if (authDisabled()) return NextResponse.next();
 
   const token = request.cookies.get(AUTH_COOKIE)?.value;

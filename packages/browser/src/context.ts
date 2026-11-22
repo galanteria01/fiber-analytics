@@ -7,7 +7,9 @@ function classifyDevice(width: number): DeviceClass {
   return 'desktop';
 }
 
-function parseUtm(search: string): Pick<EventContext, 'utm_source' | 'utm_medium' | 'utm_campaign'> {
+function parseUtm(
+  search: string,
+): Pick<EventContext, 'utm_source' | 'utm_medium' | 'utm_campaign'> {
   try {
     const params = new URLSearchParams(search);
     const out: Pick<EventContext, 'utm_source' | 'utm_medium' | 'utm_campaign'> = {};

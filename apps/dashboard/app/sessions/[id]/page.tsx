@@ -60,11 +60,7 @@ function groupByPageview(events: TimelineEvent[]): PageGroup[] {
   return groups;
 }
 
-export default async function SessionDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function SessionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const sessionId = decodeURIComponent(id);
   const events = await getSessionTimeline(sessionId);
@@ -79,7 +75,10 @@ export default async function SessionDetailPage({
       <DashboardHeader />
       <main className="mx-auto flex max-w-4xl flex-col gap-6 px-6 py-8">
         <div className="flex flex-col gap-2">
-          <Link href="/sessions" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            href="/sessions"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" /> Back to sessions
           </Link>
           <h1 className="font-mono text-lg font-semibold">{sessionId}</h1>
@@ -104,7 +103,9 @@ export default async function SessionDetailPage({
                     <FileText className="h-4 w-4 text-violet-500" />
                     <span className="font-mono text-sm">{group.url}</span>
                     {group.title ? (
-                      <span className="truncate text-xs text-muted-foreground">— {group.title}</span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        — {group.title}
+                      </span>
                     ) : null}
                     <span className="ml-auto text-xs text-muted-foreground">
                       +{humanizeDuration(groupStart - start)}

@@ -51,7 +51,12 @@ export function NewsletterForm() {
         notify('Subscribed to the newsletter', 'success');
       }}
     >
-      <input type="email" name="newsletter_email" placeholder="Email for updates" onChange={() => {}} />
+      <input
+        type="email"
+        name="newsletter_email"
+        placeholder="Email for updates"
+        onChange={() => {}}
+      />
       <button type="submit" className="button primary" label="newsletter-subscribe">
         Subscribe
       </button>

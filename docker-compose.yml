@@ -9,12 +9,12 @@ services:
       MINIO_ROOT_USER: ${FA_S3_ACCESS_KEY_ID:-minioadmin}
       MINIO_ROOT_PASSWORD: ${FA_S3_SECRET_ACCESS_KEY:-minioadmin}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - '9000:9000'
+      - '9001:9001'
     volumes:
       - minio-data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:9000/minio/health/live']
       interval: 5s
       timeout: 3s
       retries: 20
@@ -39,7 +39,7 @@ services:
       minio:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       FA_STORAGE: s3
       FA_S3_BUCKET: ${FA_S3_BUCKET:-fiber-analytics}
@@ -47,7 +47,7 @@ services:
       FA_S3_ENDPOINT: http://minio:9000
       FA_S3_ACCESS_KEY_ID: ${FA_S3_ACCESS_KEY_ID:-minioadmin}
       FA_S3_SECRET_ACCESS_KEY: ${FA_S3_SECRET_ACCESS_KEY:-minioadmin}
-      FA_S3_FORCE_PATH_STYLE: "true"
+      FA_S3_FORCE_PATH_STYLE: 'true'
       FA_DAILY_SECRET: ${FA_DAILY_SECRET:-change-me}
       FA_ALLOWED_ORIGINS: ${FA_ALLOWED_ORIGINS:-}
       FA_ALLOWED_DOMAINS: ${FA_ALLOWED_DOMAINS:-}
@@ -71,7 +71,7 @@ services:
       FA_S3_ENDPOINT: http://minio:9000
       FA_S3_ACCESS_KEY_ID: ${FA_S3_ACCESS_KEY_ID:-minioadmin}
       FA_S3_SECRET_ACCESS_KEY: ${FA_S3_SECRET_ACCESS_KEY:-minioadmin}
-      FA_S3_FORCE_PATH_STYLE: "true"
+      FA_S3_FORCE_PATH_STYLE: 'true'
       FA_RETENTION_DAYS: ${FA_RETENTION_DAYS:-90}
       FA_WORKER_INTERVAL_MS: ${FA_WORKER_INTERVAL_MS:-4000}
 

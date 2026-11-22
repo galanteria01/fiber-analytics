@@ -58,10 +58,7 @@ function pascalFromFile(filename: string): string {
  */
 function nameFromFunction(fnPath: NodePath): string | null {
   const fnNode = fnPath.node;
-  if (
-    (t.isFunctionDeclaration(fnNode) || t.isFunctionExpression(fnNode)) &&
-    fnNode.id
-  ) {
+  if ((t.isFunctionDeclaration(fnNode) || t.isFunctionExpression(fnNode)) && fnNode.id) {
     return fnNode.id.name;
   }
 
@@ -153,7 +150,7 @@ function collectProps(
     if (name === COMP_ATTR || name === PROPS_ATTR || name === LOC_ATTR || name === IGNORE_ATTR) {
       continue;
     }
-    if (opts.handlers.has(name) || name.startsWith('on')) continue;
+    if (opts.handlers.has(name) || /^on[A-Z]/.test(name)) continue;
     if (isSensitiveKey(name) || opts.denylist.has(name.toLowerCase())) continue;
     const value = staticPrimitive(attr);
     if (value !== undefined) props[name] = value;

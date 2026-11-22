@@ -41,7 +41,10 @@ export default async function ComponentPage({
       <DashboardHeader />
       <main className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8">
         <div className="flex flex-col gap-2">
-          <Link href="/" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            href="/"
+            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" /> Back to overview
           </Link>
           <h1 className="text-lg font-semibold">{componentName}</h1>
@@ -89,11 +92,18 @@ export default async function ComponentPage({
                   const pct = Math.round((row.events / max) * 100);
                   return (
                     <li key={row.day} className="flex items-center gap-3 text-xs">
-                      <span className="w-24 shrink-0 font-mono text-muted-foreground">{row.day}</span>
+                      <span className="w-24 shrink-0 font-mono text-muted-foreground">
+                        {row.day}
+                      </span>
                       <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
-                      <span className="w-10 text-right tabular-nums text-muted-foreground">{row.events}</span>
+                      <span className="w-10 text-right tabular-nums text-muted-foreground">
+                        {row.events}
+                      </span>
                     </li>
                   );
                 })}
